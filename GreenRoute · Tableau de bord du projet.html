@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GreenRoute · Tableau de bord du projet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef2f4;--sf:#fff;--tx:#14212b;--mu:#5b6b76;--ln:#d5dde2;--ac:#0e8f6b;--ac2:#d9f2e9;--cur:#b87a0a;--cur2:#fbefd3;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a21;--sf:#17252e;--tx:#e6edf1;--mu:#93a4af;--ln:#2a3b46;--ac:#3fd0a0;--ac2:#14392f;--cur:#e8b24a;--cur2:#3a2e12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a21;--sf:#17252e;--tx:#e6edf1;--mu:#93a4af;--ln:#2a3b46;--ac:#3fd0a0;--ac2:#14392f;--cur:#e8b24a;--cur2:#3a2e12;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;margin:0;line-height:1.2}
+h1{font-size:30px}
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+.sub{color:var(--mu);margin:4px 0 0}
+button,select{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);padding:8px 14px}
+select{padding:6px 8px;max-width:100%}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.pri{color:#07261c}}
+button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.glob{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:14px}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big b{font:700 40px "Bricolage Grotesque",sans-serif}
+.bar{height:8px;background:var(--ln);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .3s}
+.next{border-left:4px solid var(--cur);background:var(--cur2);border-radius:8px;padding:12px 14px;margin-top:14px}
+.next b{color:var(--cur)}
+.jmp{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ov{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:26px}
+.ov button{text-align:left;padding:10px 12px}
+.ov small{color:var(--mu);display:block}
+.ov .st{font-weight:600;margin-top:4px}
+.ph{margin-bottom:30px}
+.ph header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:baseline}
+.goal{color:var(--mu);margin:2px 0 8px}
+details{background:var(--sf);border:1px solid var(--ln);border-radius:10px;margin-top:8px}
+details.cur{border-color:var(--cur)}
+details.fin{border-color:var(--ac)}
+summary{cursor:pointer;padding:11px 14px;display:flex;gap:10px;align-items:center;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .t{flex:1;font-weight:600}
+.badge{font-size:12px;padding:2px 9px;border-radius:99px;background:var(--ln);color:var(--tx);white-space:nowrap}
+.fin .badge{background:var(--ac2);color:var(--ac)}
+.cur .badge{background:var(--cur2);color:var(--cur)}
+.inner{padding:0 14px 12px}
+.res{color:var(--mu);margin:0 0 8px}
+label{display:flex;gap:10px;padding:6px 0;align-items:flex-start;cursor:pointer;border-top:1px solid var(--ln)}
+label.ck span{text-decoration:line-through;color:var(--mu)}
+input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--ac);flex:none}
+code{background:var(--bg);border:1px solid var(--ln);border-radius:4px;padding:0 5px;font:13px ui-monospace,Consolas,monospace;word-break:break-word}
+.rules{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px}
+.rules ul{margin:8px 0 0;padding-left:20px}
+dialog{width:min(720px,94vw);background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:12px;padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+textarea{width:100%;height:50vh;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:10px;font:12.5px/1.45 ui-monospace,Consolas,monospace}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;align-items:center}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <div><h1>GreenRoute</h1><p class="sub">Routeur de LLM qui optimise le coût et le carbone · conception puis 20 jours de réalisation, 6 phases · 5 modèles · 100 % gratuit</p></div>
+  <button class="pri" id="exp">Copier le contexte pour un LLM</button>
+</div>
+<section class="glob">
+  <div class="big"><b id="gp">0 %</b><span id="gt" class="sub"></span></div>
+  <div class="bar"><i id="gb"></i></div>
+  <div class="next" id="nx"></div>
+  <div class="jmp"><label for="jump" style="border:0;padding:0;cursor:default">J’en suis au jour :</label><select id="jump"></select><span class="sub">coche d’un coup tout ce qui précède</span></div>
+</section>
+<div class="ov" id="ov"></div>
+<div id="ph"></div>
+<section class="rules">
+  <h2>Règles pour tenir le planning</h2>
+  <ul>
+    <li>100 % gratuit : aucune carte bancaire, aucun abonnement. Quota atteint : étaler le travail ou utiliser un modèle local.</li>
+    <li>Termine la conception (phase 0) avant de reprendre le code : chaque fonctionnalité doit avoir une métrique et un test prévus.</li>
+    <li>Ne rien perfectionner avant la fin de la phase 3 : un projet moyen mais fini vaut mieux qu’un projet parfait inachevé.</li>
+    <li>En retard ? Supprimer d’abord le cache sémantique (jour 11), jamais le benchmark : les chiffres comptent le plus.</li>
+    <li>Une ligne de journal par jour dans le README (fait, bloqué). Un commit par jour.</li>
+    <li>Bloqué plus de 45 minutes : copier le message d’erreur exact et demander de l’aide.</li>
+    <li>Énergie, CO₂e et eau côté API sont des estimations, pas des mesures : l’écrire dans le README et à l’oral. Vérifier les noms exacts des modèles Gemini avant de commencer.</li>
+    <li>Le projet est présentable dès la fin du jour 10 : ajouter le lien GitHub aux candidatures.</li>
+  </ul>
+  <p class="sub">Ton avancement est enregistré dans ce navigateur. Utilise le bouton en haut pour le transmettre à n’importe quel LLM.</p>
+</section>
+</main>
+<dialog id="dg">
+  <h2>Contexte à coller dans ton LLM</h2>
+  <p class="sub">Copie ce texte et colle-le au début d’une conversation (ChatGPT, Claude, Gemini…). Il contient le projet, ton état et la façon de te guider.</p>
+  <textarea id="ta" readonly></textarea>
+  <div class="row"><span id="ok" class="sub"></span><button id="cp" class="pri">Copier</button><button id="cl">Fermer</button></div>
+</dialog>
+<script>
+var P=[
+{id:"pc",t:"Phase 0 · Conception",s:"Étapes C1 à C4 · 5 à 6 h",g:"Définir quoi construire, comment le construire et comment le mesurer, avant d’écrire du code. Tout est documenté dans le dossier docs/.",d:[
+{n:"C1",t:"Cadrage et périmètre",r:"Fichier `docs/00_cadrage.md` rédigé.",k:[
+"Créer le dossier `docs/` à la racine du dépôt",
+"Rédiger en 5 lignes : le problème, l’utilisateur cible et la valeur apportée par GreenRoute",
+"Classer les fonctionnalités : indispensables (routeur, logs, benchmark), importantes (cache, carbone), bonus (dashboard avancé)",
+"Fixer les KPI avec leur méthode de mesure : énergie (Wh), CO₂e, eau (mL), qualité (1 à 5), tokens/s, latence, coût pour 1 000 requêtes, quotas API",
+"Écrire ce qu’on ne fera pas (hors périmètre) pour éviter de s’éparpiller",
+"Fixer le budget à 0 € et choisir 5 modèles : 3 locaux (Ollama) `llama3.2:3b`, `phi4-mini`, `gpt-oss:20b`, et 2 via l’API gratuite de Google AI Studio (flash-lite et flash, noms exacts à vérifier)",
+"Lister 5 risques et leur plan B (quotas de l’API gratuite, RAM, données RTE, temps, qualité du classifieur)"]},
+{n:"C2",t:"Architecture du système",r:"Schéma d’architecture et décisions techniques dans `docs/01_architecture.md`.",k:[
+"Dessiner le schéma global : client → API → classifieur → cache → modèles → logs → dashboard (draw.io ou Mermaid)",
+"Décrire pas à pas le trajet d’une requête urgente, puis celui d’une requête non urgente",
+"Tableau de décisions : pour chaque technologie, le choix, l’alternative écartée et la raison (ex. DuckDB contre PostgreSQL)",
+"Définir les modules du backend : `main`, `router`, `cache`, `llm_api`, `llm_local`, `db`, `scheduler`, `carbon`",
+"Définir l’arborescence finale du dépôt",
+"Exporter le schéma en image dans `docs/` ; commit"]},
+{n:"C3",t:"API, données et maquette du dashboard",r:"Contrat d’API, schéma des données et maquette dans `docs/02_api_donnees.md`.",k:[
+"Spécifier `POST /chat` : entrée (message, urgent, modèle optionnel) et sortie (réponse, modèle utilisé, difficulté, cache_hit, coût, gCO₂, latence)",
+"Spécifier `GET /stats` et `GET /health`",
+"Concevoir la table `logs` : colonnes, types, exemple de ligne",
+"Définir le format de `eval/questions.csv` et la grille d’annotation des 3 niveaux, avec 2 exemples par niveau",
+"Prévoir la gestion d’erreurs : que faire si un modèle est indisponible (repli vers un autre) ?",
+"Lister les variables du `.env` (clés, seuils, modèles), sans valeurs secrètes",
+"Maquetter le dashboard sur papier ou draw.io : chiffres clés, courbes coût/latence/gCO₂, tableau de comparaison"]},
+{n:"C4",t:"ML, carbone et protocole d’évaluation",r:"Protocole et hypothèses dans `docs/03_ml_evaluation.md`. Conception terminée.",k:[
+"Définir la règle de routage : niveau → modèle, et le repli si la confiance du classifieur est faible",
+"Choisir le classifieur de base, ses entrées (embeddings) et ses métriques (précision, rappel sur la classe difficile)",
+"Définir le protocole de benchmark : mêmes 200 questions, routeur contre « toujours le gros modèle », et méthode de mesure de la qualité",
+"Définir le calcul carbone : hypothèse d’énergie par token et formule gCO₂ = kWh × g/kWh",
+"Définir le cache (seuil de similarité) et l’ordonnanceur (délai d’attente maximum, fenêtre de prévision)",
+"Relire les 4 documents : chaque fonctionnalité a-t-elle une métrique et un test prévus ?",
+"Reporter les dates réelles dans le planning, avec des jours de marge ; commit et tag `v0-design`"]}]},
+{id:"p0",t:"Phase 1 · Préparation",s:"Jour 0 · 1 h",g:"Outils installés, dépôt GitHub prêt.",d:[
+{n:0,t:"Dépôt et structure",r:"Les dossiers backend, frontend, data, eval sont visibles sur GitHub.",k:[
+"Installer Python 3.10+ (cocher « Add to PATH »), Git et VS Code ; vérifier `python --version` et `git --version`",
+"Créer le dépôt public `greenroute` sur GitHub avec README et .gitignore Python",
+"Cloner le dépôt et ouvrir le dossier dans VS Code",
+"Créer les dossiers : `mkdir backend, frontend, data, eval` (PowerShell)",
+"Créer `backend/__init__.py` et les `.gitkeep` avec `New-Item`",
+"Premier commit et `git push` ; vérifier sur GitHub"]}]},
+{id:"p1",t:"Phase 2 · Le proxy qui marche",s:"Jours 1 à 5 + mesure 5b",g:"Une API qui reçoit une question, appelle un des 5 modèles et enregistre le coût, puis une mesure de référence des 5 modèles.",d:[
+{n:1,t:"FastAPI et route /chat",r:"La route répond « hello ».",k:[
+"Créer et activer l’environnement virtuel : `python -m venv .venv` puis `.venv\\Scripts\\Activate.ps1`",
+"Installer : `pip install fastapi 'uvicorn[standard]'`",
+"Générer `requirements.txt` avec `pip freeze > requirements.txt`",
+"Écrire `backend/main.py` : route GET `/` et POST `/chat` (modèle pydantic avec le champ message)",
+"Lancer à la racine : `uvicorn backend.main:app --reload`",
+"Tester sur `http://127.0.0.1:8000/docs` avec le message Bonjour : la réponse contient hello",
+"Commit + première ligne du journal dans le README"]},
+{n:2,t:"Brancher les modèles via API",r:"Une vraie réponse IA par la route /chat.",k:[
+"Créer une clé gratuite dans Google AI Studio (sans carte bancaire), noter les modèles gratuits et leurs limites, et relever les identifiants exacts des deux modèles Gemini à utiliser (flash-lite et flash)",
+"Mettre la clé dans `.env` ; vérifier que `.env` est dans `.gitignore` avant tout commit",
+"Installer `python-dotenv` et le SDK du fournisseur ; mettre à jour `requirements.txt`",
+"Écrire `backend/llm_api.py` : fonction qui envoie un prompt et renvoie texte + nombre de tokens",
+"Appeler cette fonction depuis `/chat`",
+"Tester une vraie question ; commit"]},
+{n:3,t:"Brancher les modèles locaux (Ollama)",r:"Cinq modèles appelables : 3 locaux et 2 via API.",k:[
+"Installer Ollama (ollama.com) ; vérifier la RAM disponible (8 Go minimum)",
+"Télécharger un petit modèle : `ollama pull llama3.2:3b`",
+"Tester en terminal : `ollama run llama3.2:3b`",
+"Écrire `backend/llm_local.py` qui appelle `http://localhost:11434`",
+"Ajouter un paramètre pour choisir le modèle (local ou API) dans `/chat`",
+"Tester les deux ; commit",
+"Télécharger aussi `phi4-mini` et `gpt-oss:20b` (plus de 10 Go ; prévoir environ 16 Go de RAM pour ce dernier) et les tester en terminal",
+"Vérifier que `ollama list` affiche les trois modèles locaux ; commit"]},
+{n:4,t:"Logs dans DuckDB",r:"Table de logs remplie à chaque requête.",k:[
+"Installer `duckdb` ; mettre à jour `requirements.txt`",
+"Écrire `backend/db.py` : table logs (horodatage, modèle, tokens entrée/sortie, durée en ms, coût estimé)",
+"Mesurer la durée avec `time.perf_counter()`",
+"Calculer le coût estimé avec un dictionnaire de tarifs publics théoriques par modèle (le coût réel est 0 €, c’est ce qu’on paierait sans offre gratuite)",
+"Enregistrer chaque appel `/chat` dans la table",
+"Vérifier avec un `SELECT * FROM logs` ; ajouter le fichier .duckdb au `.gitignore` ; commit",
+"Ajouter les colonnes `lieu`, `tokens_par_s`, `energie_wh`, `co2e_g`, `eau_ml`, `note_qualite` (remplies à partir du jour 5b)"]},
+{n:5,t:"Tests et README « comment lancer »",r:"Projet qui démarre en une commande.",k:[
+"Installer `pytest` et `httpx`",
+"Écrire 3 tests : `/` répond ok, `/chat` valide répond, `/chat` sans message renvoie 422",
+"Simuler (mock) les appels aux modèles pour ne rien dépenser",
+"Rédiger dans le README : installation, activation, lancement",
+"Vérifier que `pytest` passe ; commit"]},
+{n:"5b",t:"Mesure de référence des 5 modèles",r:"Fichier `data/resultats_mesure.csv` et premiers constats sur énergie, qualité et vitesse. Fin de la phase 2.",k:[
+"Écrire `eval/questions_mesure.csv` : 15 à 20 questions en français (5 simples, 5 moyennes, 5 complexes) couvrant extraction, reformulation, synthèse, traduction, raisonnement",
+"Rédiger la grille de notation de qualité (1 à 5) avant de lire les réponses",
+"Écrire `eval/mesure.py` : boucle questions × 5 modèles, même consigne, environ 300 tokens de sortie, même température",
+"Installer `codecarbon` et mesurer l’énergie (Wh) des 3 modèles locaux pendant chaque appel",
+"Pour les 2 modèles API : estimer énergie, CO₂e et eau à partir des tokens (EcoLogits ou formule documentée) et l’écrire comme estimation",
+"Relever tokens/s (`eval_count / eval_duration` pour Ollama), latence et coût pour 1 000 requêtes",
+"Noter la qualité (1 à 5) et la réussite (0 ou 1) de chaque réponse",
+"Enregistrer `data/resultats_mesure.csv` (une ligne par question et par modèle), comparer aux ordres de grandeur de ML.ENERGY et d’AI Energy Score ; commit"]}]},
+{id:"p2",t:"Phase 3 · Le cerveau du routeur",s:"Jours 6 à 10",g:"Le système choisit tout seul le bon modèle. Le projet devient présentable.",d:[
+{n:6,t:"Jeu de 200 questions annotées",r:"Fichier `eval/questions.csv`.",k:[
+"Définir par écrit 3 niveaux : simple (reformulation, extraction), moyenne, difficile (raisonnement, code)",
+"Écrire ou générer environ 200 questions, équilibrées entre les niveaux",
+"Annoter chaque question avec son niveau et relire à la main",
+"Enregistrer `eval/questions.csv` (id, question, label)",
+"Vérifier l’équilibre avec `pandas` (`value_counts`) ; commit"]},
+{n:7,t:"Embeddings des questions",r:"Données prêtes pour le classifieur.",k:[
+"Installer `sentence-transformers`",
+"Choisir un modèle multilingue léger (ex. `paraphrase-multilingual-MiniLM-L12-v2`)",
+"Écrire `eval/embed.py` qui calcule un vecteur par question",
+"Sauvegarder dans `data/` (fichier .npy) et vérifier la forme (200 lignes)",
+"Commit"]},
+{n:8,t:"Classifieur de difficulté",r:"Premier score de précision.",k:[
+"Installer `scikit-learn`",
+"Séparer train/test 80/20 avec stratification",
+"Entraîner une régression logistique sur les embeddings",
+"Mesurer précision et matrice de confusion",
+"Sauvegarder le modèle avec `joblib`",
+"Noter le score dans le journal ; commit"]},
+{n:9,t:"Routage automatique",r:"Simple → petit modèle, difficile → gros modèle.",k:[
+"Écrire `backend/router.py` : fonction qui renvoie le niveau d’une question",
+"Associer chaque niveau à un modèle : petit = `llama3.2:3b` (repli `phi4-mini`), moyen = `gpt-oss:20b` ou flash-lite, gros = flash",
+"Brancher le routeur dans `/chat`",
+"Ajouter la colonne difficulté dans les logs",
+"Tester avec 3 questions de niveaux différents ; commit"]},
+{n:10,t:"Comparaison avec « toujours le gros modèle »",r:"Premier tableau de résultats. Jalon : lien GitHub dans les candidatures.",k:[
+"Écrire `eval/benchmark.py` : stratégie routeur contre stratégie naïve",
+"Mesurer coût total, énergie, CO₂e, eau, latence et qualité sur le jeu de test (en repartant des valeurs du jour 5b)",
+"Mettre le tableau de résultats dans le README",
+"Ajouter le lien GitHub à tes candidatures en cours"]}]},
+{id:"p3",t:"Phase 4 · Cache et carbone",s:"Jours 11 à 15",g:"Ce qui distingue le projet : cache sémantique et planification carbone.",d:[
+{n:11,t:"Cache sémantique",r:"Questions proches = réponse instantanée.",k:[
+"Calculer l’embedding de chaque nouvelle question",
+"Comparer aux questions déjà vues (similarité cosinus) avec un seuil à régler",
+"Stocker en mémoire (dictionnaire) et sauvegarder dans DuckDB : pas besoin de Redis",
+"Si proche : renvoyer la réponse mémorisée ; ajouter `cache_hit` aux logs",
+"Tester deux questions reformulées ; commit"]},
+{n:12,t:"Données carbone RTE",r:"Jeu de données horaires.",k:[
+"Trouver le jeu de données éco2mix (intensité carbone) sur le portail open data de RTE",
+"Télécharger l’historique et le sauvegarder dans `data/`",
+"Nettoyer : dates, valeurs manquantes",
+"Tracer la courbe sur une semaine pour la comprendre ; commit"]},
+{n:13,t:"Prévision carbone",r:"Courbe de prévision.",k:[
+"Créer les variables : heure, jour de la semaine",
+"Entraîner Prophet ou XGBoost avec un découpage temporel (pas aléatoire)",
+"Mesurer l’erreur moyenne (MAE)",
+"Prévoir les prochaines 24 h et tracer la courbe",
+"Sauvegarder le modèle ; commit"]},
+{n:14,t:"Ordonnanceur carbon-aware",r:"File d’attente fonctionnelle.",k:[
+"Ajouter un paramètre « urgent » dans `/chat`",
+"Mettre les tâches non urgentes dans une file d’attente",
+"Choisir l’heure la moins carbonée selon la prévision",
+"Écrire le worker qui exécute les tâches à l’heure choisie",
+"Tester avec une tâche non urgente ; commit"]},
+{n:15,t:"gCO₂ par requête",r:"Nouvelle colonne dans les logs. Fin de la phase 4.",k:[
+"Poser une hypothèse d’énergie par token à partir des mesures du jour 5b et la documenter",
+"Calculer gCO₂ = énergie (kWh) × intensité du réseau (g/kWh)",
+"Ajouter la colonne `co2_g` aux logs",
+"Vérifier sur quelques requêtes ; commit"]}]},
+{id:"p4",t:"Phase 5 · Montrer et publier",s:"Jours 16 à 20",g:"Tout est en ligne, mesuré et expliqué.",d:[
+{n:16,t:"Dashboard React",r:"Page avec graphiques.",k:[
+"Créer le projet dans `frontend/` avec Vite et installer Recharts",
+"Ajouter une route `GET /stats` dans l’API (et activer CORS)",
+"Afficher coût, latence et gCO₂ en graphiques",
+"Ajouter la comparaison avec la stratégie naïve ; commit"]},
+{n:17,t:"Benchmark final",r:"Chiffres finaux : −X % coût, −Y % CO₂e, qualité Z %.",k:[
+"Lancer les 200 questions avec le routeur, puis avec la stratégie naïve (étaler sur plusieurs jours si les quotas gratuits sont atteints ; sauvegarder chaque réponse pour ne jamais refaire un appel)",
+"Calculer −X % de coût, −Y % de CO₂e, l’énergie et l’eau économisées, et la qualité maintenue (Z %)",
+"Exporter le tableau et un graphique ; mettre les chiffres dans le README",
+"Commit"]},
+{n:18,t:"Docker",r:"Lancement en une commande.",k:[
+"Écrire le `Dockerfile` du backend et un `.dockerignore`",
+"Écrire `docker-compose.yml` (backend et frontend)",
+"Tester : `docker compose up`",
+"Commit"]},
+{n:19,t:"Déploiement et GitHub Actions",r:"Démo accessible par lien public.",k:[
+"Créer un compte Render (offre gratuite, sans carte bancaire) et activer GitHub Pages pour le dashboard",
+"Configurer les secrets (clé API) dans la plateforme, jamais dans le code",
+"Vérifier que le backend tient dans 512 Mo de RAM (sinon : embeddings plus légers ou résultats précalculés)",
+"Déployer et tester le lien public (le premier appel après inactivité met environ 1 minute : l’écrire dans le README)",
+"Ajouter un workflow GitHub Actions qui lance `pytest`",
+"Commit"]},
+{n:20,t:"README final et vidéo",r:"Projet terminé.",k:[
+"Ajouter un schéma d’architecture au README",
+"Mettre les résultats finaux et le lien de la démo",
+"Enregistrer une vidéo démo de 2 minutes",
+"Relire le journal de bord ; épingler le dépôt sur ton profil GitHub",
+"Ajouter le projet au CV et à LinkedIn"]}]}
+];
+var KEY="greenroute-state-v1",st=null;
+try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!st||!st.done){st={done:{}};for(var i=0;i<6;i++)st.done["0."+i]=1;for(i=0;i<3;i++)st.done["1."+i]=1}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/`([^`]+)`/g,"<code>$1</code>")}
+function plain(s){return s.replace(/`/g,"")}
+var $=function(i){return document.getElementById(i)};
+var days=[];P.forEach(function(p){p.d.forEach(function(d){d._p=p;days.push(d)})});
+function cnt(d){var c=0;d.k.forEach(function(_,i){if(st.done[d.n+"."+i])c++});return c}
+function build(){
+  var h="",o="";
+  P.forEach(function(p){
+    o+='<button data-p="'+p.id+'"><b>'+p.t.split(" · ")[0]+'</b><small>'+p.s+'</small><div class="st" id="os-'+p.id+'"></div><div class="bar"><i id="ob-'+p.id+'"></i></div></button>';
+    h+='<section class="ph" id="'+p.id+'"><header><h2>'+p.t+'</h2><span class="sub">'+p.s+'</span></header><p class="goal">'+p.g+'</p>';
+    p.d.forEach(function(d){
+      h+='<details id="d'+d.n+'"><summary><span class="t">Jour '+d.n+' · '+d.t+'</span><span class="badge" id="b'+d.n+'"></span></summary><div class="inner"><p class="res">Résultat attendu : '+esc(d.r)+'</p>';
+      d.k.forEach(function(k,i){h+='<label><input type="checkbox" data-k="'+d.n+'.'+i+'"><span>'+esc(k)+'</span></label>'});
+      h+='</div></details>'});
+    h+='</section>'});
+  $("ph").innerHTML=h;$("ov").innerHTML=o;
+  document.querySelectorAll("input[type=checkbox]").forEach(function(c){
+    c.checked=!!st.done[c.dataset.k];
+    c.onchange=function(){if(c.checked)st.done[c.dataset.k]=1;else delete st.done[c.dataset.k];save();upd()}});
+  document.querySelectorAll(".ov button").forEach(function(b){b.onclick=function(){$(b.dataset.p).scrollIntoView({behavior:"smooth"})}});
+}
+function cur(){for(var i=0;i<days.length;i++)if(cnt(days[i])<days[i].k.length)return days[i];return null}
+function upd(){
+  var tot=0,dn=0,c=cur();
+  P.forEach(function(p){var t=0,x=0;p.d.forEach(function(d){t+=d.k.length;x+=cnt(d)});tot+=t;dn+=x;
+    var pc=Math.round(100*x/t);$("ob-"+p.id).style.width=pc+"%";
+    $("os-"+p.id).textContent=pc===100?"Terminée":(c&&c._p===p?"En cours · "+pc+" %":(x?pc+" %":"À venir"))});
+  days.forEach(function(d){var x=cnt(d),el=$("d"+d.n),b=$("b"+d.n);
+    b.textContent=x+"/"+d.k.length;el.className=x===d.k.length?"fin":(c===d?"cur":"");
+    el.querySelectorAll("label").forEach(function(l,i){l.className=st.done[d.n+"."+i]?"ck":""})});
+  var pc=Math.round(100*dn/tot);
+  $("gp").textContent=pc+" %";$("gb").style.width=pc+"%";
+  var fd=days.filter(function(d){return cnt(d)===d.k.length}).length;
+  $("gt").textContent=dn+" tâches sur "+tot+" · "+fd+" jours terminés sur "+days.length;
+  if(c){var i=0;while(st.done[c.n+"."+i])i++;
+    $("nx").innerHTML="<b>Prochaine tâche · Jour "+c.n+" : "+c.t+"</b><br>"+esc(c.k[i])}
+  else $("nx").innerHTML="<b>Projet terminé.</b> Mets à jour ton CV et publie le lien de la démo."}
+function jumpInit(){
+  var s=$("jump"),o='<option value="">Choisir…</option>';
+  days.forEach(function(d,i){o+='<option value="'+i+'">Jour '+d.n+' · '+d.t+'</option>'});
+  s.innerHTML=o;
+  s.onchange=function(){if(s.value==="")return;var j=+s.value;
+    for(var i=0;i<j;i++)days[i].k.forEach(function(_,x){st.done[days[i].n+"."+x]=1});
+    save();build();upd();s.value="";var c=cur();if(c)$("d"+c.n).open=true}}
+function ctx(){
+  var c=cur(),L=[];
+  L.push("# GreenRoute · contexte projet pour assistant IA","",
+  "## Ton rôle","Tu es mon mentor technique. Guide-moi pas à pas, une journée du planning à la fois, avec des commandes exactes et le code complet des fichiers. Je suis sous Windows (PowerShell) et débutant sur plusieurs outils. Après chaque étape, attends mon retour (résultat ou message d’erreur exact) avant de continuer. Respecte strictement le planning ci-dessous. Si je suis en retard, applique les règles de priorité.","",
+  "## Projet","GreenRoute : routeur de LLM qui optimise le coût et l’empreinte carbone. Une API (FastAPI) reçoit une question, un classifieur de difficulté (embeddings + scikit-learn) choisit parmi 5 modèles (petit : llama3.2:3b, repli phi4-mini ; moyen : gpt-oss:20b en local ou Gemini flash-lite ; gros : Gemini flash ; noms Gemini exacts à vérifier), un cache sémantique évite les appels répétés, un ordonnanceur décale les tâches non urgentes vers les heures où le réseau électrique français est le moins carboné (données RTE éco2mix + prévision Prophet/XGBoost). Un dashboard React + Recharts affiche coût, latence, gCO₂ contre une stratégie « toujours le gros modèle ». KPI : énergie (Wh), CO₂e, eau (mL), qualité (1 à 5), tokens/s, latence, coût pour 1 000 requêtes, quotas API. Énergie, CO₂e et eau côté API sont des estimations, pas des mesures. Livrable clé : benchmark chiffré (−X % coût, −Y % CO₂e, qualité Z %). Objectif : portfolio pour un stage en data science et IA. Contrainte forte : 100 % ressources gratuites, sans carte bancaire ; les coûts du benchmark sont des estimations au tarif public. Les quotas gratuits sont limités : prévoir cache et repli sur un modèle local.","",
+  "## Stack et conventions","Python, FastAPI, DuckDB (logs), dictionnaire en mémoire (cache), scikit-learn, sentence-transformers, Prophet/XGBoost, Ollama, CodeCarbon, React + Vite + Recharts, Docker, GitHub Actions, Render (offre gratuite) + GitHub Pages. Dépôt : `greenroute/` avec `backend/`, `frontend/`, `data/`, `eval/`, `docs/` (conception). Environnement virtuel `.venv`. Un commit par jour et une ligne de journal dans le README. Secrets dans `.env`, jamais commités.","",
+  "## Règles de priorité","Ne rien perfectionner avant la fin de la phase 3. En retard : supprimer d’abord le cache sémantique (jour 11), jamais le benchmark. Bloqué plus de 45 minutes : je te colle l’erreur exacte.","",
+  "## État actuel");
+  if(c){var i=0;while(st.done[c.n+"."+i])i++;
+    L.push("Jour en cours : Jour "+c.n+" · "+c.t+" ("+c._p.t+")","Prochaine tâche : "+plain(c.k[i]),"","Tâches restantes du jour en cours :");
+    c.k.forEach(function(k,j){if(!st.done[c.n+"."+j])L.push("- [ ] "+plain(k))})}
+  else L.push("Toutes les tâches sont terminées.");
+  L.push("","## Planning et avancement");
+  P.forEach(function(p){L.push("","### "+p.t+" ("+p.s+") : "+p.g);
+    p.d.forEach(function(d){var x=cnt(d);L.push("- Jour "+d.n+" · "+d.t+" : "+x+"/"+d.k.length+(x===d.k.length?" terminé":"")+" → "+plain(d.r))})});
+  L.push("","## Pour commencer","Résume en 3 lignes où j’en suis, puis donne-moi les instructions détaillées pour la prochaine tâche.");
+  return L.join("\n")}
+$("exp").onclick=function(){$("ta").value=ctx();$("ok").textContent="";$("dg").showModal()};
+$("cl").onclick=function(){$("dg").close()};
+$("cp").onclick=function(){var t=$("ta");t.select();
+  var done=false;try{done=document.execCommand("copy")}catch(e){}
+  if(!done&&navigator.clipboard){navigator.clipboard.writeText(t.value).then(function(){$("ok").textContent="Copié."},function(){$("ok").textContent="Sélectionne le texte et copie-le avec Ctrl+C."});return}
+  $("ok").textContent=done?"Copié.":"Sélectionne le texte et copie-le avec Ctrl+C."};
+build();jumpInit();upd();
+var c0=cur();if(c0)$("d"+c0.n).open=true;
+</script>
+</body>
+</html>
