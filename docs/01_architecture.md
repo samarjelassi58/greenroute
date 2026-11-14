@@ -1,3 +1,4 @@
+```mermaid
 flowchart LR
     classDef client fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a
     classDef api fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
@@ -74,3 +75,4 @@ flowchart LR
     ROUTER -.->|"Modèle sélectionné"| DB
     RES -.->|"Latence, tokens, facteur RTE"| DB
     DB --> DASH
+    ```
