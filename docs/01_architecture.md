@@ -1,136 +1,104 @@
 # GreenRoute · Architecture
 
-Version 1.0 · 15 novembre 2026 · Étape C2 de la conception
+Version 2.0 · 15 novembre 2026 · Étape C2
 
-GreenRoute est une API qui reçoit une question, choisit le modèle de langage le plus adapté (petit, moyen ou gros), mesure ce que la réponse coûte en énergie, en CO₂e, en eau et en argent, et enregistre tout pour le dashboard. `/chat` répond toujours immédiatement : il n'y a ni option « urgent », ni file d'attente.
+GreenRoute reçoit une question, choisit le modèle le plus petit qui suffit, mesure ce que la réponse coûte en énergie, CO₂e, eau et argent, et enregistre tout. `/chat` répond toujours tout de suite.
 
-## 1. Schéma global
+## 1. Schéma
 
 ```mermaid
 flowchart LR
-    classDef client fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a
-    classDef api fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
-    classDef decision fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
-    classDef model fill:#faf5ff,stroke:#a855f7,stroke-width:2px,color:#3b0764
-    classDef obs fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    C(["Client"]) --> A["1 · API<br/>reçoit la question"]
+    A --> K{"2 · Cache<br/>question déjà vue ?"}
+    K -->|"oui"| R(["Réponse au client"])
+    K -->|"non"| D["3 · Classifieur<br/>simple, moyenne ou difficile ?"]
+    D --> M["4 · Modèle<br/>petit, moyen ou gros"]
+    M --> L["5 · Mesures<br/>énergie, CO₂e, eau, coût"]
+    L --> R
+    L --> DB[("Logs DuckDB")]
+    RTE[("Données RTE<br/>carbone du réseau")] --> L
 
-    C(["Client"]):::client
-    API["API FastAPI<br/>(validation Pydantic)"]:::api
-    CACHE{"Cache sémantique<br/>(similarité à régler au jour 11)"}:::api
-    ROUTER{"Classifieur de difficulté"}:::decision
-    SMALL["Petit modèle local<br/>(llama3.2:3b, repli phi4-mini)"]:::model
-    MEDIUM["Modèle moyen<br/>(gpt-oss:20b ou Gemini flash-lite)"]:::model
-    LARGE["Gros modèle cloud<br/>(Gemini flash)"]:::model
-    RES["Réponse finale<br/>(mesure tokens, durée, énergie)"]:::model
-    RTE[("Données RTE<br/>(intensité carbone par heure)")]:::obs
-    DB[("DuckDB<br/>(logs : tokens, latence, énergie, CO₂e, eau)")]:::obs
-    DASH["Dashboard"]:::obs
-
-    C -->|"POST /chat"| API
-    API --> CACHE
-    CACHE -->|"Trouvé : inférence évitée"| API
-    CACHE -->|"Absent"| ROUTER
-    ROUTER -->|"Simple"| SMALL
-    ROUTER -->|"Moyenne"| MEDIUM
-    ROUTER -->|"Difficile"| LARGE
-    SMALL --> RES
-    MEDIUM --> RES
-    LARGE --> RES
-    RES -->|"Réponse immédiate"| API
-    API -->|"Réponse"| C
-    RES -.->|"Mise en cache"| CACHE
-    CACHE -.->|"Hit / miss"| DB
-    ROUTER -.->|"Modèle choisi"| DB
-    RES -.->|"Tokens, durée, énergie"| DB
-    RTE -.->|"Intensité à l'heure de la requête"| DB
-    DB --> DASH
+    classDef pipe fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef data fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    class A,K,D,M,L pipe
+    class DB,RTE data
 ```
 
+Image à exporter depuis mermaid.live : `docs/architecture.png`.
+
+**5 modèles, 3 niveaux.** L'étape 3 choisit un niveau, l'étape 4 appelle le modèle de ce niveau :
+
+| Niveau | Modèle principal | Autre modèle | Où |
+|---|---|---|---|
+| Simple | `llama3.2:3b` | `phi4-mini` (repli) | Local (Ollama) |
+| Moyen | `gpt-oss:20b` | Gemini flash-lite | Local ou API |
+| Difficile | Gemini flash | aucun | API |
+
+La mesure du jour 5b confirme qui occupe chaque place.
 
 ## 2. Les mots à connaître
 
-| Terme | Sens dans le projet |
+| Mot | En clair |
 |---|---|
-| API FastAPI | Le point d'entrée du programme : la porte où arrivent les questions. |
+| API | La porte d'entrée du programme : c'est là qu'arrivent les questions. |
+| Embedding | Une phrase transformée en liste de nombres, pour comparer les sens. |
 | Cache sémantique | Une mémoire qui reconnaît les questions de même sens, pas seulement les mêmes mots. |
-| Classifieur de difficulté | Un petit modèle de machine learning qui range une question en simple, moyenne ou difficile. |
-| Embedding | Une question transformée en liste de nombres, pour pouvoir comparer les sens. |
+| Classifieur | Un petit programme de machine learning qui range une question en simple, moyenne ou difficile. |
 | Token | Un morceau de mot : l'unité dans laquelle on compte ce que lit et écrit un modèle. |
-| CO₂e | Les émissions de gaz à effet de serre, exprimées en équivalent CO₂. |
+| CO₂e | Les émissions de gaz à effet de serre, ramenées à un équivalent CO₂. |
 
 ## 3. Trajet d'une requête
 
-1. Le client envoie `POST /chat` avec un message (et, en option, un modèle imposé).
-2. L'API vérifie le message avec Pydantic. S'il est vide ou mal formé, elle répond une erreur 422.
-3. Le cache calcule l'embedding de la question et le compare aux questions déjà vues. Si la similarité dépasse le seuil, il renvoie la réponse mémorisée : aucun modèle n'est appelé, et la requête est journalisée avec `cache_hit = vrai`.
-4. Sinon, le classifieur range la question en simple, moyenne ou difficile.
-5. Le routeur choisit le modèle : petit (`llama3.2:3b`), moyen (`gpt-oss:20b` ou Gemini flash-lite) ou gros (Gemini flash). Si le modèle est indisponible, ou si la confiance du classifieur est faible, il se replie sur un autre (`phi4-mini` pour le petit, le niveau supérieur sinon).
-6. Le modèle répond, via Ollama en local ou via l'API Gemini. La durée et le nombre de tokens sont mesurés.
-7. Le module `carbon` calcule l'énergie (Wh), le CO₂e (énergie × intensité RTE à l'heure de la requête) et l'eau (mL). Le coût estimé est calculé au tarif public (0 € pour un modèle local).
-8. La requête est enregistrée dans DuckDB, la réponse est mise en cache, puis renvoyée au client avec : la réponse, le modèle utilisé, la difficulté, `cache_hit`, le coût, le CO₂e et la latence.
+Imagine un restaurant. Une question traverse 5 pièces, dans l'ordre du schéma :
 
-Cas d'erreur : quota API atteint (erreur 429) → réessayer avec un délai croissant, puis se rabattre sur un modèle local.
+1. **API : l'accueil.** Elle reçoit la question et refuse un message vide.
+2. **Cache : la mémoire de la cuisine.** Si une question de même sens a déjà reçu une réponse, on la renvoie sans rien recalculer. C'est l'énergie la mieux économisée.
+3. **Classifieur : le chef de salle.** Il juge si la question est simple, moyenne ou difficile.
+4. **Modèle : la cuisine.** Le petit, le moyen ou le gros modèle écrit la réponse. S'il est indisponible, on passe au suivant.
+5. **Mesures : le ticket de caisse.** On calcule l'énergie, le CO₂e, l'eau et le coût, on enregistre tout dans DuckDB, puis on répond.
+
+Trois règles à retenir :
+
+- **Modèle imposé.** Si la requête contient `modele`, les étapes 2 et 3 sont sautées. C'est indispensable pour le benchmark : sans ça, une réponse du cache fausserait les mesures.
+- **Réponse du cache.** Elle est aussi enregistrée : `cache_hit = vrai`, tokens = 0, énergie = 0.
+- **Carbone.** Les données RTE sont celles du réseau français : valables pour les modèles locaux, une hypothèse pour Gemini. Énergie, CO₂e et eau sont des estimations, pas des mesures directes.
 
 ## 4. Choix techniques
 
-| Rôle | Choix | Alternative écartée | Raison |
+| Rôle | J'ai pris | Plutôt que | Parce que |
 |---|---|---|---|
-| API | FastAPI | Flask | Validation Pydantic intégrée et documentation automatique sur `/docs`. |
-| Logs | DuckDB | PostgreSQL | Un simple fichier local, aucun service à installer, SQL complet. |
-| Cache | Dictionnaire en mémoire, sauvegardé dans DuckDB | Redis | Gratuit, aucun service à héberger. |
-| Classifieur | Embeddings + régression logistique | Fine-tuning d'un LLM | Léger, rapide à entraîner, facile à expliquer. |
-| Embeddings | `sentence-transformers` (modèle multilingue léger) | API d'embeddings payante | Local, gratuit, comprend le français. |
-| Modèles locaux | Ollama | llama.cpp en direct | Installation simple, API HTTP locale. |
-| Modèles cloud | Gemini via Google AI Studio (offre gratuite) | API payantes | Aucune carte bancaire. |
-| Énergie locale | CodeCarbon | Wattmètre physique | Estimation logicielle gratuite. |
-| Intensité carbone | Données RTE éco2mix | API de données payante | Open data, couvre la France. |
-| Dashboard | React + Recharts | Streamlit | Plus visible dans un portfolio. |
-| Déploiement | Docker + Render (offre gratuite) | Serveur payant | Gratuit, démo accessible par lien public. |
+| API | FastAPI | Flask | Validation et page `/docs` automatiques |
+| Logs | DuckDB | PostgreSQL | Un simple fichier, rien à installer |
+| Cache | Dictionnaire en mémoire | Redis | Gratuit, rien à héberger |
+| Classifieur | Fine-tuning d'un LLM | Zero-shot classification avec BERT | Précis, optimisé pour l'énergie |
+| Modèles | Ollama + Gemini gratuit | API payantes | Aucune carte bancaire |
+| Carbone et énergie | Données RTE + CodeCarbon | Wattmètre, API payante | Gratuit (des estimations) |
+| Dashboard | React + Recharts | Streamlit | Plus visible dans un portfolio |
 
 ## 5. Modules du backend
 
-| Module | Rôle |
-|---|---|
-| `main.py` | Crée l'API FastAPI et définit les routes `/chat`, `/stats` et `/health`. |
-| `router.py` | Classe la difficulté d'une question et choisit le modèle, avec les replis. |
-| `cache.py` | Calcule les embeddings, cherche une question proche et stocke les réponses. |
-| `llm_api.py` | Appelle les modèles Gemini et renvoie le texte et les tokens. |
-| `llm_local.py` | Appelle les modèles Ollama (`http://localhost:11434`) et renvoie le texte, les tokens et le débit. |
-| `db.py` | Crée la table de logs DuckDB et y enregistre chaque requête. |
-| `carbon.py` | Lit l'intensité RTE et calcule l'énergie, le CO₂e et l'eau d'une requête. |
+| Fichier | Rôle | Jour |
+|---|---|---|
+| `main.py` | Reçoit `/chat`, `/stats`, `/health` | 1 |
+| `llm_api.py` | Appelle les modèles Gemini | 2 |
+| `llm_local.py` | Appelle les modèles Ollama | 3 |
+| `db.py` | Enregistre les logs dans DuckDB | 4 |
+| `router.py` | Classifieur et choix du modèle | 9 |
+| `cache.py` | Cache sémantique | 11 |
+| `carbon.py` | Intensité RTE, énergie, CO₂e, eau | 14 et 15 |
 
-## 6. Arborescence finale du dépôt
+Il n'y a pas de `scheduler` : `/chat` répond toujours tout de suite.
+
+## 6. Arborescence
 
 ```
 greenroute/
-├── backend/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── router.py
-│   ├── cache.py
-│   ├── llm_api.py
-│   ├── llm_local.py
-│   ├── db.py
-│   └── carbon.py
-├── frontend/            dashboard React
-├── data/                données RTE, embeddings, résultats de mesure
-├── eval/
-│   ├── questions_mesure.csv
-│   ├── questions.csv
-│   ├── mesure.py
-│   ├── embed.py
-│   └── benchmark.py
+├── backend/    main, llm_api, llm_local, db, router, cache, carbon
+├── frontend/   dashboard React
+├── data/       données RTE, embeddings, résultats de mesure
+├── eval/       questions, mesure.py, embed.py, benchmark.py
 ├── tests/
-├── docs/
-│   ├── 00_cadrage.md
-│   ├── 01_architecture.md
-│   ├── 02_api_donnees.md
-│   ├── 03_ml_evaluation.md
-│   └── architecture.png
-├── .env                 jamais commité
-├── .gitignore
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
+├── docs/       00_cadrage, 01_architecture, 02_api_donnees, 03_ml_evaluation, architecture.png
+├── .env        jamais commité
+├── requirements.txt, Dockerfile, docker-compose.yml, README.md
 ```
