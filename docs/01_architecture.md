@@ -46,7 +46,6 @@ flowchart LR
     DB --> DASH
 ```
 
-Image du schéma : `docs/architecture.png` (exportée depuis mermaid.live).
 
 ## 2. Les mots à connaître
 
