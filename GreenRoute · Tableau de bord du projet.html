@@ -58,6 +58,13 @@ dialog{width:min(720px,94vw);background:var(--sf);color:var(--tx);border:1px sol
 dialog::backdrop{background:rgba(0,0,0,.5)}
 textarea{width:100%;height:50vh;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:10px;font:12.5px/1.45 ui-monospace,Consolas,monospace}
 .row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;align-items:center}
+details.how{background:transparent;border:0;border-left:3px solid var(--ln);border-radius:0;margin:0 0 8px 28px}
+details.how summary{padding:4px 10px;font-size:13px;color:var(--ac);font-weight:600}
+details.how ol{margin:2px 0 6px;padding-left:34px}
+details.how li{margin:3px 0}
+.ok{margin:4px 10px 6px;padding:6px 10px;background:var(--ac2);border-radius:6px;font-size:13.5px}
+.next details.how{margin-left:0;border-left-color:var(--cur)}
+.next details.how summary{color:var(--cur)}
 </style>
 </head>
 <body>
@@ -98,7 +105,7 @@ textarea{width:100%;height:50vh;background:var(--bg);color:var(--tx);border:1px 
 <script>
 var P=[
 {id:"pc",t:"Phase 0 · Conception",s:"Étapes C1 à C4 · 5 à 6 h",g:"Définir quoi construire, comment le construire et comment le mesurer, avant d’écrire du code. Tout est documenté dans le dossier docs/.",d:[
-{n:"C1",t:"Cadrage et périmètre",r:"Fichier `docs/00_cadrage.md` rédigé.",k:[
+{n:"C1",t:"Cadrage et périmètre",r:"`docs/00_cadrage.md` rédigé (version 1.1 du 14 novembre, avec son PDF).",k:[
 "Créer le dossier `docs/` à la racine du dépôt",
 "Rédiger en 5 lignes : le problème, l’utilisateur cible et la valeur apportée par GreenRoute",
 "Classer les fonctionnalités : indispensables (routeur, logs, benchmark), importantes (cache, carbone), bonus (dashboard avancé)",
@@ -106,27 +113,27 @@ var P=[
 "Écrire ce qu’on ne fera pas (hors périmètre) pour éviter de s’éparpiller",
 "Fixer le budget à 0 € et choisir 5 modèles : 3 locaux (Ollama) `llama3.2:3b`, `phi4-mini`, `gpt-oss:20b`, et 2 via l’API gratuite de Google AI Studio (flash-lite et flash, noms exacts à vérifier)",
 "Lister 5 risques et leur plan B (quotas de l’API gratuite, RAM, données RTE, temps, qualité du classifieur)"]},
-{n:"C2",t:"Architecture du système",r:"Schéma d’architecture et décisions techniques dans `docs/01_architecture.md`.",k:[
-"Dessiner le schéma global : client → API → classifieur → cache → modèles → logs → dashboard (draw.io ou Mermaid)",
-"Décrire pas à pas le trajet d’une requête urgente, puis celui d’une requête non urgente",
-"Tableau de décisions : pour chaque technologie, le choix, l’alternative écartée et la raison (ex. DuckDB contre PostgreSQL)",
-"Définir les modules du backend : `main`, `router`, `cache`, `llm_api`, `llm_local`, `db`, `scheduler`, `carbon`",
-"Définir l’arborescence finale du dépôt",
-"Exporter le schéma en image dans `docs/` ; commit"]},
-{n:"C3",t:"API, données et maquette du dashboard",r:"Contrat d’API, schéma des données et maquette dans `docs/02_api_donnees.md`.",k:[
-"Spécifier `POST /chat` : entrée (message, urgent, modèle optionnel) et sortie (réponse, modèle utilisé, difficulté, cache_hit, coût, gCO₂, latence)",
-"Spécifier `GET /stats` et `GET /health`",
-"Concevoir la table `logs` : colonnes, types, exemple de ligne",
-"Définir le format de `eval/questions.csv` et la grille d’annotation des 3 niveaux, avec 2 exemples par niveau",
-"Prévoir la gestion d’erreurs : que faire si un modèle est indisponible (repli vers un autre) ?",
-"Lister les variables du `.env` (clés, seuils, modèles), sans valeurs secrètes",
-"Maquetter le dashboard sur papier ou draw.io : chiffres clés, courbes coût/latence/gCO₂, tableau de comparaison"]},
+{n:"C2",t:"Architecture du système",r:"`docs/01_architecture.md` (6 sections : schéma, glossaire, trajet, choix techniques, modules, arborescence) et `docs/architecture.png` publiés sur GitHub.",k:[
+"Section 1 · Schéma : copier `01_architecture.md` dans `docs/`, faire un commit et un push, puis vérifier que le schéma Mermaid s’affiche sur GitHub (sinon le tester sur mermaid.live)",
+"Section 3 · Trajet d’une requête : relire les 8 étapes (validation, cache, classifieur, routeur, modèle, énergie/CO₂e/eau, logs, réponse) et le cas d’erreur 429, puis pouvoir les raconter avec tes mots",
+"Section 4 · Choix techniques : relire le tableau (FastAPI, DuckDB, cache en mémoire, embeddings, Ollama, Gemini gratuit, CodeCarbon, RTE, React, Docker/Render) et pouvoir justifier chaque alternative écartée",
+"Section 5 · Modules du backend : relire le rôle de `main`, `router`, `cache`, `llm_api`, `llm_local`, `db` et `carbon` (il n’y a plus de `scheduler`)",
+"Section 6 · Arborescence : relire l’arbre du dépôt et créer les dossiers manquants (`docs/`, `tests/`) ; les autres fichiers seront créés aux jours prévus",
+"Exporter le schéma en PNG depuis mermaid.live sous `docs/architecture.png`, puis `git add docs`, commit « docs: architecture C2 » et `git push`"]},
+{n:"C3",t:"API, données et maquette du dashboard",r:"`docs/02_api_donnees.md` rédigé (sections : POST /chat, GET /stats, GET /health, table logs, questions.csv, erreurs, .env, maquette du dashboard).",k:[
+"Section POST /chat : entrée `message` (texte non vide) et `modele` (optionnel) ; sortie `reponse`, `modele_utilise`, `difficulte`, `cache_hit`, `cout_eur`, `energie_wh`, `co2e_g`, `eau_ml`, `latence_ms`, avec un exemple de requête et de réponse en JSON",
+"Sections GET /stats (énergie, CO₂e, eau, coût, latence médiane et 95e centile, part des requêtes en cache, répartition par modèle, heure la moins carbonée des 24 h) et GET /health (état de l’API, des 3 modèles Ollama et de l’API Gemini)",
+"Table `logs` : `id`, `horodatage`, `modele`, `lieu`, `difficulte`, `cache_hit`, `tokens_entree`, `tokens_sortie`, `latence_ms`, `tokens_par_s`, `energie_wh`, `intensite_g_kwh`, `co2e_g`, `eau_ml`, `cout_eur`, `note_qualite` : le type de chaque colonne et une ligne d’exemple",
+"Définir le format de `eval/questions.csv` (`id`, `question`, `label`) et la grille d’annotation des 3 niveaux (simple, moyenne, difficile), avec 2 exemples par niveau et une règle écrite pour trancher les cas limites",
+"Gestion d’erreurs : 422 si le message est vide ; 429 → réessai avec délai croissant puis repli sur un modèle local ; modèle indisponible → modèle suivant ; chaque requête est journalisée, même en cas de repli",
+"Variables du `.env` : `GEMINI_API_KEY`, `GEMINI_MODEL_MOYEN`, `GEMINI_MODEL_GROS`, `OLLAMA_URL`, `SEUIL_CACHE`, `DB_PATH` ; écrire un `.env.example` sans valeurs secrètes et le commiter",
+"Maquetter le dashboard sur papier ou draw.io : 4 chiffres clés (énergie, CO₂e, eau, coût), courbes par jour, tableau de comparaison des 5 modèles et du routeur contre « toujours le gros modèle »"]},
 {n:"C4",t:"ML, carbone et protocole d’évaluation",r:"Protocole et hypothèses dans `docs/03_ml_evaluation.md`. Conception terminée.",k:[
-"Définir la règle de routage : niveau → modèle, et le repli si la confiance du classifieur est faible",
+"Règle de routage : simple → `llama3.2:3b` (repli `phi4-mini`), moyenne → `gpt-oss:20b` ou flash-lite, difficile → flash ; repli vers le niveau supérieur si la confiance du classifieur est faible (seuil à fixer)",
 "Choisir le classifieur de base, ses entrées (embeddings) et ses métriques (précision, rappel sur la classe difficile)",
-"Définir le protocole de benchmark : mêmes 200 questions, routeur contre « toujours le gros modèle », et méthode de mesure de la qualité",
-"Définir le calcul carbone : hypothèse d’énergie par token et formule gCO₂ = kWh × g/kWh",
-"Définir le cache (seuil de similarité) et l’ordonnanceur (délai d’attente maximum, fenêtre de prévision)",
+"Définir le protocole de benchmark : mêmes 200 questions, routeur contre « toujours le gros modèle », méthode de mesure de la qualité, et reporter les cibles minimum et objectif de la section 4.3 du cadrage",
+"Définir le calcul d’empreinte : énergie par requête (CodeCarbon en local, hypothèse documentée par token pour l’API), CO₂e = kWh × g/kWh, eau = coefficient documenté",
+"Définir le cache (seuil de similarité) et l’usage de l’intensité carbone RTE (historique, profil moyen en secours)",
 "Relire les 4 documents : chaque fonctionnalité a-t-elle une métrique et un test prévus ?",
 "Reporter les dates réelles dans le planning, avec des jours de marge ; commit et tag `v0-design`"]}]},
 {id:"p0",t:"Phase 1 · Préparation",s:"Jour 0 · 1 h",g:"Outils installés, dépôt GitHub prêt.",d:[
@@ -216,7 +223,7 @@ var P=[
 "Mesurer coût total, énergie, CO₂e, eau, latence et qualité sur le jeu de test (en repartant des valeurs du jour 5b)",
 "Mettre le tableau de résultats dans le README",
 "Ajouter le lien GitHub à tes candidatures en cours"]}]},
-{id:"p3",t:"Phase 4 · Cache et carbone",s:"Jours 11 à 15",g:"Ce qui distingue le projet : cache sémantique et planification carbone.",d:[
+{id:"p3",t:"Phase 4 · Cache et carbone",s:"Jours 11 à 15",g:"Ce qui distingue le projet : cache sémantique et prise en compte de l’intensité carbone.",d:[
 {n:11,t:"Cache sémantique",r:"Questions proches = réponse instantanée.",k:[
 "Calculer l’embedding de chaque nouvelle question",
 "Comparer aux questions déjà vues (similarité cosinus) avec un seuil à régler",
@@ -234,12 +241,12 @@ var P=[
 "Mesurer l’erreur moyenne (MAE)",
 "Prévoir les prochaines 24 h et tracer la courbe",
 "Sauvegarder le modèle ; commit"]},
-{n:14,t:"Ordonnanceur carbon-aware",r:"File d’attente fonctionnelle.",k:[
-"Ajouter un paramètre « urgent » dans `/chat`",
-"Mettre les tâches non urgentes dans une file d’attente",
-"Choisir l’heure la moins carbonée selon la prévision",
-"Écrire le worker qui exécute les tâches à l’heure choisie",
-"Tester avec une tâche non urgente ; commit"]},
+{n:14,t:"Intensité carbone dans /chat",r:"L’intensité carbone de l’heure est enregistrée pour chaque requête.",k:[
+"Écrire `backend/carbon.py` : fonction qui renvoie l’intensité du réseau (g/kWh) à l’heure de la requête, à partir du CSV RTE",
+"Brancher cette fonction dans `/chat` et enregistrer l’intensité dans les logs (colonne `intensite_g_kwh`)",
+"Prévoir le cas où l’heure est absente des données : utiliser le profil moyen par heure et par jour de semaine",
+"Ajouter dans `GET /stats` l’heure la moins carbonée des prochaines 24 h, à titre d’information",
+"Tester avec deux heures différentes ; commit"]},
 {n:15,t:"gCO₂ par requête",r:"Nouvelle colonne dans les logs. Fin de la phase 4.",k:[
 "Poser une hypothèse d’énergie par token à partir des mesures du jour 5b et la documenter",
 "Calculer gCO₂ = énergie (kWh) × intensité du réseau (g/kWh)",
@@ -249,7 +256,7 @@ var P=[
 {n:16,t:"Dashboard React",r:"Page avec graphiques.",k:[
 "Créer le projet dans `frontend/` avec Vite et installer Recharts",
 "Ajouter une route `GET /stats` dans l’API (et activer CORS)",
-"Afficher coût, latence et gCO₂ en graphiques",
+"Afficher énergie, CO₂e, eau, coût, latence et qualité en graphiques",
 "Ajouter la comparaison avec la stratégie naïve ; commit"]},
 {n:17,t:"Benchmark final",r:"Chiffres finaux : −X % coût, −Y % CO₂e, qualité Z %.",k:[
 "Lancer les 200 questions avec le routeur, puis avec la stratégie naïve (étaler sur plusieurs jours si les quotas gratuits sont atteints ; sauvegarder chaque réponse pour ne jamais refaire un appel)",
@@ -281,8 +288,183 @@ if(!st||!st.done){st={done:{}};for(var i=0;i<6;i++)st.done["0."+i]=1;for(i=0;i<3
 function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/`([^`]+)`/g,"<code>$1</code>")}
 function plain(s){return s.replace(/`/g,"")}
+function T(k){return typeof k==="string"?k:k[0]}
+function det(k,o){if(typeof k==="string")return"";var s=k[1].split("|").map(function(x){return"<li>"+esc(x)+"</li>"}).join("");return'<details class="how"'+(o?" open":"")+'><summary>Comment faire</summary><ol>'+s+'</ol><p class="ok"><b>Tu dois voir :</b> '+esc(k[2])+'</p></details>'}
 var $=function(i){return document.getElementById(i)};
-var days=[];P.forEach(function(p){p.d.forEach(function(d){d._p=p;days.push(d)})});
+var DET={
+'C1':[
+['Créer le dossier `docs/` à la racine du dépôt','Dans le terminal de VS Code, à la racine : `mkdir docs`|Crée `docs/00_cadrage.md` avec un titre et la date|`git add docs` puis `git commit -m docs-cadrage`','Le fichier `docs/00_cadrage.md` apparaît dans l’explorateur.'],
+['Rédiger en 5 lignes : problème, utilisateur cible, valeur','Ligne 1 : le problème (les LLM coûtent cher et consomment de l’énergie, même pour des questions simples)|Ligne 2 : l’utilisateur cible (développeur ou équipe qui appelle plusieurs LLM)|Ligne 3 : la solution (un routeur qui choisit le plus petit modèle suffisant)|Lignes 4 et 5 : la valeur (moins de coût, moins de CO₂e, qualité maintenue) et comment on le prouve','5 lignes lisibles par quelqu’un qui ne connaît pas le projet.'],
+['Classer les fonctionnalités par priorité','Crée 3 listes dans le cadrage : indispensables, importantes, bonus|Indispensables : routeur, logs, benchmark|Importantes : cache sémantique, calcul carbone|Bonus : dashboard avancé','3 listes, avec le benchmark dans les indispensables.'],
+['Fixer les KPI et leur méthode de mesure','Fais un tableau : KPI, unité, comment on le mesure|Énergie (Wh), CO₂e (g), eau (mL), qualité (note de 1 à 5)|Tokens/s, latence, coût pour 1 000 requêtes, quotas API|Pour chaque KPI, écris si c’est une mesure ou une estimation','Un tableau avec une méthode de mesure par KPI.'],
+['Écrire ce qu’on ne fera pas','Liste 4 à 6 choses hors périmètre (par exemple : pas d’authentification, pas de file d’attente, pas d’entraînement de modèle)|Ajoute une phrase : tout ajout doit passer par ce document|Relis : chaque point évite un risque de dispersion','Une section « Hors périmètre » d’au moins 4 lignes.'],
+['Fixer le budget à 0 € et choisir les 5 modèles','Écris « budget : 0 €, aucune carte bancaire »|Locaux (Ollama) : `llama3.2:3b`, `phi4-mini`, `gpt-oss:20b`|API gratuite Google AI Studio : un modèle flash-lite et un modèle flash|Note de vérifier les noms exacts des modèles Gemini avant le jour 2','Un tableau de 5 modèles avec leur rôle.'],
+['Lister 5 risques et leur plan B','Quotas de l’API gratuite : plan B = cache et repli sur un modèle local|RAM insuffisante : plan B = modèle plus petit|Données RTE indisponibles : plan B = profil moyen|Manque de temps : plan B = supprimer le cache (jour 11)|Qualité du classifieur : plan B = seuil de confiance et niveau supérieur','Un tableau de 5 lignes : risque, plan B.']],
+1:[
+['Créer et activer l’environnement virtuel','À la racine du dépôt : `python -m venv .venv`|Active-le : `.venv\\Scripts\\Activate.ps1`|Si PowerShell refuse : `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, puis recommence','`(.venv)` s’affiche au début de la ligne du terminal.'],
+['Installer FastAPI et Uvicorn','`pip install fastapi \'uvicorn[standard]\'`|Attends la fin de l’installation sans erreur rouge','`pip list` montre `fastapi` et `uvicorn`.'],
+['Générer `requirements.txt`','`pip freeze > requirements.txt`|Ouvre le fichier pour vérifier qu’il contient fastapi','Un fichier `requirements.txt` rempli à la racine.'],
+['Écrire `backend/main.py`','Importe `FastAPI` et `BaseModel` (pydantic)|Crée `app = FastAPI()`|Route GET `/` qui renvoie un petit message|Classe `Requete` avec un champ `message` (texte)|Route POST `/chat` qui renvoie `{"reponse": "hello"}`','Le fichier contient 2 routes : `/` et `/chat`.'],
+['Lancer le serveur','À la racine : `uvicorn backend.main:app --reload`|Laisse ce terminal ouvert (Ctrl+C pour arrêter)','Le terminal affiche « Application startup complete ».'],
+['Tester sur `/docs`','Ouvre `http://127.0.0.1:8000/docs`|Déplie POST `/chat`, clique sur Try it out|Mets `{"message": "Bonjour"}` puis Execute','Code 200 et une réponse qui contient hello.'],
+['Commit et première ligne du journal','Dans le README, ajoute une ligne « Jour 1 : API FastAPI qui répond »|`git add .` puis `git commit -m jour1-fastapi`|`git push`','Le commit est visible sur GitHub.']],
+2:[
+['Créer une clé gratuite Google AI Studio','Va sur aistudio.google.com et connecte-toi avec ton compte Google|Clique sur Get API key puis crée la clé (aucune carte bancaire)|Note les deux modèles gratuits à utiliser (flash-lite et flash) et leurs limites par minute et par jour','Une clé créée, et deux identifiants de modèles notés.'],
+['Mettre la clé dans `.env` et protéger le fichier','Ouvre `.gitignore` et vérifie la ligne `.env`, sinon ajoute-la|Crée `.env` avec `GEMINI_API_KEY=ta_clé`|Ajoute `GEMINI_MODEL_MOYEN` et `GEMINI_MODEL_GROS` avec les identifiants exacts|`git status` : `.env` ne doit pas apparaître','`.env` n’apparaît pas dans `git status`.'],
+['Installer `python-dotenv` et le SDK','`pip install python-dotenv google-genai`|`pip freeze > requirements.txt`','Les deux paquets sont dans `requirements.txt`.'],
+['Écrire `backend/llm_api.py`','Charge `.env` avec `load_dotenv()`|Crée une fonction qui prend un prompt et un nom de modèle|Appelle le SDK et renvoie le texte et le nombre de tokens (entrée et sortie)|Gère l’erreur 429 avec une exception claire','Une fonction qui renvoie (texte, tokens_entree, tokens_sortie).'],
+['Appeler la fonction depuis `/chat`','Dans `main.py`, importe la fonction de `llm_api`|Remplace « hello » par l’appel au modèle|Renvoie la réponse et le nom du modèle utilisé','POST `/chat` renvoie une vraie réponse.'],
+['Tester une vraie question et commit','Sur `/docs`, demande « Explique la photosynthèse en 2 phrases »|Vérifie que la réponse est cohérente|`git add .` puis `git commit -m jour2-api-llm` et `git push`','Une réponse en français et un commit sur GitHub.']],
+3:[
+['Installer Ollama et vérifier la RAM','Télécharge Ollama sur ollama.com et installe-le|Vérifie la RAM : Gestionnaire des tâches, onglet Performance, Mémoire (8 Go minimum)|Ouvre un nouveau terminal et tape `ollama --version`','Un numéro de version s’affiche.'],
+['Télécharger `llama3.2:3b`','`ollama pull llama3.2:3b`|Attends la fin du téléchargement (environ 2 Go)','Le terminal affiche « success ».'],
+['Tester en terminal','`ollama run llama3.2:3b`|Pose une question courte|Quitte avec `/bye`','Le modèle répond dans le terminal.'],
+['Écrire `backend/llm_local.py`','Installe `httpx` si besoin|Fonction qui envoie un POST à `http://localhost:11434/api/generate` avec le modèle, le prompt et `stream` à false|Renvoie le texte, `eval_count` et `eval_duration`','Une fonction qui renvoie texte, tokens et durée.'],
+['Choisir le modèle dans `/chat`','Ajoute le champ optionnel `modele` à la requête|Si le nom commence par `gemini`, appelle `llm_api` ; sinon `llm_local`|Sans valeur, utilise `llama3.2:3b`','Le même `/chat` appelle un modèle local ou API.'],
+['Tester les deux et commit','Sur `/docs`, teste `llama3.2:3b` puis un modèle Gemini|`git add .` puis `git commit -m jour3-ollama` et `git push`','Deux réponses, avec le bon modèle dans chacune.'],
+['Télécharger `phi4-mini` et `gpt-oss:20b`','`ollama pull phi4-mini`|`ollama pull gpt-oss:20b` (plus de 10 Go, environ 16 Go de RAM)|Teste chacun avec `ollama run`','Les deux modèles répondent en terminal.'],
+['Vérifier `ollama list` et commit','`ollama list`|Si `gpt-oss:20b` est trop lourd, note-le dans le journal et prévois flash-lite à la place|`git commit -am jour3-modeles-locaux`','`ollama list` affiche les trois modèles locaux.']],
+4:[
+['Installer `duckdb`','`pip install duckdb`|`pip freeze > requirements.txt`','`duckdb` est dans `requirements.txt`.'],
+['Écrire `backend/db.py`','Connecte-toi avec `duckdb.connect("data/greenroute.duckdb")`|`CREATE TABLE IF NOT EXISTS logs` avec : id, horodatage, modele, tokens_entree, tokens_sortie, latence_ms, cout_eur|Écris `enregistrer(...)` qui insère une ligne','Le fichier a une fonction de création et une d’insertion.'],
+['Mesurer la durée avec `time.perf_counter()`','Dans `/chat`, `debut = time.perf_counter()` avant l’appel au modèle|Après l’appel : `latence_ms = (time.perf_counter() - debut) * 1000`','Une valeur de latence en millisecondes pour chaque requête.'],
+['Calculer le coût estimé','Crée un dictionnaire des tarifs publics par million de tokens (entrée et sortie) pour chaque modèle|Locaux : tarif théorique documenté, le coût réel est 0 €|Coût = tokens × tarif / 1 000 000','Un coût en euros, même minuscule, pour chaque appel.'],
+['Enregistrer chaque appel `/chat`','Appelle `enregistrer(...)` juste avant de répondre|Garde aussi les erreurs : une ligne même en cas de repli','Une ligne ajoutée à chaque appel de `/chat`.'],
+['Vérifier et ignorer le fichier .duckdb','Dans un script Python, `SELECT * FROM logs`|Ajoute `*.duckdb` à `.gitignore`|`git commit -am jour4-logs` et `git push`','Tu vois tes requêtes dans la table, et le fichier .duckdb n’est pas suivi par Git.'],
+['Ajouter les colonnes de mesure','`ALTER TABLE logs ADD COLUMN` pour `lieu`, `tokens_par_s`, `energie_wh`, `co2e_g`, `eau_ml`, `note_qualite`|Elles resteront vides jusqu’au jour 5b|Commit','`DESCRIBE logs` montre les nouvelles colonnes.']],
+5:[
+['Installer `pytest` et `httpx`','`pip install pytest httpx`|`pip freeze > requirements.txt`','`pytest --version` affiche un numéro.'],
+['Écrire 3 tests dans `tests/test_api.py`','Utilise `TestClient` de FastAPI|Test 1 : GET `/` répond 200|Test 2 : POST `/chat` avec un message valide répond 200|Test 3 : POST `/chat` sans message renvoie 422','Un fichier avec 3 fonctions `test_...`.'],
+['Simuler les modèles (mock)','Utilise `monkeypatch` pour remplacer la fonction d’appel au modèle par une fausse réponse|Applique-le dans les tests 2 et 3|Vérifie que le réseau n’est jamais appelé','Les tests passent sans connexion ni quota consommé.'],
+['Rédiger « comment lancer » dans le README','Installation : clone, `python -m venv .venv`, activation, `pip install -r requirements.txt`|Configuration : copier `.env.example` en `.env`|Lancement : `uvicorn backend.main:app --reload`','Une personne extérieure peut lancer le projet avec ces lignes.'],
+['Vérifier `pytest` et commit','`pytest`|Corrige si besoin|`git add .` puis `git commit -m jour5-tests` et `git push`','3 tests passent (vert).']],
+'5b':[
+['Écrire `eval/questions_mesure.csv`','Colonnes : `id`, `question`, `niveau`|15 à 20 questions en français : 5 simples, 5 moyennes, 5 complexes|Couvre extraction, reformulation, synthèse, traduction, raisonnement','Un CSV de 15 à 20 lignes équilibré par niveau.'],
+['Rédiger la grille de notation (1 à 5)','Décris chaque note : 1 = faux, 3 = correct mais incomplet, 5 = correct, complet, clair|Écris la grille dans `docs/03_ml_evaluation.md` avant de lire les réponses','La grille est écrite avant la première réponse lue.'],
+['Écrire `eval/mesure.py`','Boucle sur les questions, puis sur les 5 modèles|Même consigne, environ 300 tokens de sortie max, même température|Enregistre chaque réponse dans un fichier pour ne jamais la redemander','Le script tourne sur une question et un modèle sans erreur.'],
+['Mesurer l’énergie locale avec `codecarbon`','`pip install codecarbon`|Entoure l’appel local d’un `EmissionsTracker`|Convertis le résultat en Wh','Une valeur en Wh pour chaque appel local.'],
+['Estimer énergie, CO₂e et eau pour l’API','Choisis une formule documentée (EcoLogits ou une hypothèse en Wh par token)|Calcule énergie, CO₂e et eau à partir des tokens|Écris « estimation » dans la colonne ou le README','Les deux modèles API ont des valeurs marquées comme estimées.'],
+['Relever vitesse, latence et coût','Ollama : `tokens_par_s = eval_count / (eval_duration / 1e9)`|API : tokens de sortie divisés par la durée|Coût pour 1 000 requêtes à partir des tarifs du jour 4','Les colonnes `tokens_par_s`, `latence_ms` et `cout_1000` sont remplies.'],
+['Noter qualité et réussite','Lis chaque réponse avec la grille|Note de 1 à 5 et réussite à 0 ou 1|Note sans regarder quel modèle a répondu si possible','Chaque réponse a une note.'],
+['Enregistrer `data/resultats_mesure.csv` et comparer','Une ligne par question et par modèle|Calcule les moyennes par modèle avec `pandas`|Compare aux ordres de grandeur de ML.ENERGY et d’AI Energy Score|`git add data eval` puis `git commit -m jour5b-mesure`','Un CSV complet et 3 constats écrits dans le journal.']],
+6:[
+['Définir par écrit les 3 niveaux','Simple : reformulation, extraction, traduction courte|Moyenne : synthèse, explication, comparaison|Difficile : raisonnement en plusieurs étapes, code|Règle : en cas de doute, prendre le niveau supérieur|Écris-le dans `docs/02_api_donnees.md`','Trois définitions et une règle de doute écrites.'],
+['Écrire ou générer environ 200 questions','Vise environ 67 questions par niveau|Tu peux en faire générer par un LLM, puis tu les relis|Varie les sujets et la longueur des questions|Évite les doublons','Un fichier brut d’environ 200 questions.'],
+['Annoter chaque question et relire à la main','Ajoute le niveau pour chaque question|Relis tout, sans te fier au niveau demandé au LLM|Corrige les cas limites avec la règle écrite','Chaque question a un niveau relu par toi.'],
+['Enregistrer `eval/questions.csv`','Colonnes : `id`, `question`, `label`|Encodage UTF-8 ; mets les questions entre guillemets si elles contiennent des virgules','Le CSV s’ouvre sans caractère cassé.'],
+['Vérifier l’équilibre avec `pandas`','`pip install pandas`|`pd.read_csv("eval/questions.csv")["label"].value_counts()`|Rééquilibre si un niveau est sous 30 %|`git add eval` puis `git commit -m jour6-questions`','Les 3 niveaux sont proches de 67 questions chacun.']],
+7:[
+['Installer `sentence-transformers`','`pip install sentence-transformers`|Prévois quelques minutes (PyTorch est lourd)|`pip freeze > requirements.txt`','`import sentence_transformers` ne donne aucune erreur.'],
+['Choisir le modèle d’embeddings','Prends `paraphrase-multilingual-MiniLM-L12-v2` (léger, multilingue)|Note ce choix et sa raison dans `docs/03_ml_evaluation.md`','Le nom du modèle est noté.'],
+['Écrire `eval/embed.py`','Charge le CSV avec `pandas`|`SentenceTransformer(nom).encode(questions)`|Affiche la forme du résultat','Le script tourne et affiche une forme (200, 384).'],
+['Sauvegarder en `.npy`','`np.save("data/embeddings.npy", vecteurs)`|Vérifie `vecteurs.shape` : 200 lignes, 384 colonnes','Le fichier `data/embeddings.npy` existe.'],
+['Commit','`git add eval data`|`git commit -m jour7-embeddings` puis `git push`','Le commit est sur GitHub.']],
+8:[
+['Installer `scikit-learn`','`pip install scikit-learn joblib`|`pip freeze > requirements.txt`','`import sklearn` ne donne aucune erreur.'],
+['Séparer train et test 80/20','`train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)`|`X` = embeddings, `y` = niveaux','Le test contient environ 40 questions, bien réparties.'],
+['Entraîner une régression logistique','`LogisticRegression(max_iter=1000).fit(X_train, y_train)`','Le modèle s’entraîne sans erreur.'],
+['Mesurer précision et matrice de confusion','`accuracy_score` et `confusion_matrix`|Ajoute le rappel de la classe « difficile »|Regarde où le modèle se trompe','Une précision chiffrée et une matrice 3×3.'],
+['Sauvegarder avec `joblib`','`joblib.dump(modele, "data/classifieur.joblib")`','Le fichier `.joblib` existe.'],
+['Noter le score dans le journal et commit','Écris la précision et le rappel « difficile » dans le README|`git add .` puis `git commit -m jour8-classifieur`','Le score est dans le journal et sur GitHub.']],
+9:[
+['Écrire `backend/router.py`','Charge le classifieur et le modèle d’embeddings une seule fois, au démarrage|Fonction `niveau(question)` : embedding puis `predict_proba`|Renvoie le niveau et la confiance','`niveau("Bonjour")` renvoie un niveau et une confiance.'],
+['Associer chaque niveau à un modèle','Dictionnaire : simple → `llama3.2:3b` (repli `phi4-mini`), moyen → `gpt-oss:20b` ou flash-lite, gros → flash|Si la confiance est sous le seuil, passe au niveau supérieur','Une fonction qui renvoie le nom du modèle à appeler.'],
+['Brancher le routeur dans `/chat`','Si `modele` est absent, appelle le routeur|Si `modele` est fourni, garde le choix manuel','`/chat` choisit seul le modèle.'],
+['Ajouter la colonne difficulté dans les logs','Passe `difficulte` à `enregistrer(...)`|Renvoie-la aussi dans la réponse de `/chat`','Chaque ligne de `logs` contient la difficulté.'],
+['Tester avec 3 questions de niveaux différents','Une question simple, une moyenne, une difficile|Vérifie le modèle utilisé pour chacune|Ajoute un test `pytest` avec mock|`git commit -am jour9-routeur`','Trois modèles différents selon la question.']],
+10:[
+['Écrire `eval/benchmark.py`','Stratégie A : routeur ; stratégie B : toujours le gros modèle|Boucle sur le jeu de test|Sauvegarde chaque réponse pour ne rien refaire','Le script produit un résultat pour les deux stratégies.'],
+['Mesurer coût, énergie, CO₂e, eau, latence, qualité','Repars des valeurs par modèle du jour 5b|Calcule le total par stratégie|Note la qualité avec la grille et 30 réponses vérifiées à la main','Un tableau avec 6 mesures pour 2 stratégies.'],
+['Mettre le tableau dans le README','Ajoute une section « Résultats »|Écris la différence en pourcentage|Précise que l’énergie, le CO₂e et l’eau API sont des estimations','Le tableau s’affiche sur GitHub.'],
+['Ajouter le lien GitHub aux candidatures','Vérifie que le README donne le contexte, le lancement et les résultats|Ajoute le lien à ton CV et à tes candidatures en cours','Le projet est présentable par lien.']],
+11:[
+['Calculer l’embedding de chaque question','Réutilise le modèle d’embeddings déjà chargé|Fonction `embedding(question)` dans `backend/cache.py`','Un vecteur par question.'],
+['Comparer aux questions déjà vues','Similarité cosinus avec toutes les questions stockées|Seuil par défaut 0,90, à régler entre 0,85 et 0,95|Seuil lu depuis `SEUIL_CACHE` dans `.env`','La fonction renvoie la meilleure similarité.'],
+['Stocker en mémoire et dans DuckDB','Dictionnaire : question, vecteur, réponse|Table `cache` dans DuckDB, rechargée au démarrage|Pas de Redis','Le cache survit à un redémarrage.'],
+['Renvoyer la réponse mémorisée et logger `cache_hit`','Si la similarité dépasse le seuil, renvoie la réponse sans appeler de modèle|Renseigne `cache_hit` (vrai ou faux) dans les logs','Une question répétée répond en quelques millisecondes.'],
+['Tester deux questions reformulées','Pose une question, puis une reformulation|Vérifie `cache_hit`|Ajuste le seuil si besoin ; commit','La deuxième réponse vient du cache.']],
+12:[
+['Trouver le jeu de données éco2mix','Ouvre odre.opendatasoft.com (portail open data de RTE)|Cherche « éco2mix » national, intensité carbone ou taux de CO₂|Note le nom du jeu et la période disponible','Un jeu avec une valeur de g/kWh par heure.'],
+['Télécharger l’historique','Exporte en CSV (au moins 1 an)|Enregistre-le dans `data/rte_co2.csv`|Ajoute-le à `.gitignore` s’il dépasse 50 Mo','Le fichier est dans `data/`.'],
+['Nettoyer dates et valeurs manquantes','`pd.to_datetime` sur la date|Regroupe à l’heure|Remplis ou supprime les valeurs manquantes (à documenter)|Sauvegarde `data/rte_co2_propre.csv`','Aucune date en double ni valeur vide.'],
+['Tracer une semaine et commit','`plt.plot` sur 7 jours|Repère le rythme jour et nuit, semaine et week-end|`git commit -am jour12-rte`','Une courbe qui montre un cycle quotidien.']],
+13:[
+['Créer les variables heure et jour de la semaine','`df["heure"] = df.index.hour`|`df["jour"] = df.index.dayofweek`|Ajoute le mois si utile','Les colonnes existent.'],
+['Entraîner Prophet ou XGBoost','Découpe dans le temps : les derniers 20 % en test, sans mélange|Choisis Prophet (simple) ou XGBoost|Entraîne sur la partie passée','Le modèle s’entraîne.'],
+['Mesurer la MAE','`mean_absolute_error` sur la période de test|Compare à la moyenne simple par heure|Note les deux valeurs','Une MAE en g/kWh, meilleure que le profil moyen.'],
+['Prévoir les 24 h suivantes et tracer','Crée les 24 prochaines heures|Prédis et trace la courbe|Repère l’heure la moins carbonée','Une courbe de 24 points.'],
+['Sauvegarder le modèle et commit','`joblib.dump` dans `data/`|`git commit -am jour13-prevision`','Le modèle est sauvegardé.']],
+14:[
+['Écrire `backend/carbon.py`','Charge le CSV RTE nettoyé|Fonction `intensite(horodatage)` qui renvoie des g/kWh|Arrondis l’heure','`intensite(maintenant)` renvoie une valeur.'],
+['Brancher dans `/chat` et logger','Appelle `intensite()` à chaque requête|Renseigne `intensite_g_kwh` dans les logs','La colonne est remplie.'],
+['Prévoir l’heure absente','Si l’heure n’est pas dans les données, utilise la moyenne par heure et jour de semaine|Calcule ce profil une fois au démarrage','Une valeur est toujours renvoyée.'],
+['Ajouter l’heure la moins carbonée dans `/stats`','Utilise la prévision des 24 h du jour 13|Renvoie l’heure et la valeur, à titre d’information seulement|Ne retarde jamais la réponse de `/chat`','`/stats` contient `heure_min_carbone`.'],
+['Tester avec deux heures et commit','Simule deux horodatages différents|Vérifie deux valeurs distinctes|`git commit -am jour14-carbone`','Deux intensités différentes.']],
+15:[
+['Poser l’hypothèse d’énergie par token','Reprends les mesures locales du jour 5b|Calcule Wh par token pour chaque modèle|Écris l’hypothèse dans `docs/03_ml_evaluation.md`','Une valeur en Wh par token et par modèle.'],
+['Calculer gCO₂','`co2e_g = energie_kwh * intensite_g_kwh`|Attention : Wh divisés par 1 000 pour obtenir des kWh','Une valeur en grammes par requête.'],
+['Ajouter la colonne `co2_g`','Ajoute-la à la table et à `enregistrer(...)`|Conserve `co2e_g` si elle existe déjà, pour éviter les doublons de sens','Chaque nouvelle ligne a un CO₂.'],
+['Vérifier sur quelques requêtes et commit','Compare un petit et un gros modèle|Le gros doit émettre plus|`git commit -am jour15-co2`','Les ordres de grandeur sont cohérents.']],
+16:[
+['Créer le projet Vite et installer Recharts','Dans `frontend/` : `npm create vite@latest . -- --template react`|`npm install` puis `npm install recharts`|`npm run dev`','La page de démarrage Vite s’affiche.'],
+['Ajouter `GET /stats` et activer CORS','Route qui renvoie les agrégats depuis DuckDB|`CORSMiddleware` avec l’adresse du dashboard|Teste dans `/docs`','`/stats` renvoie du JSON.'],
+['Afficher les graphiques','Appelle `/stats` avec `fetch`|4 chiffres : énergie, CO₂e, eau, coût|Courbes : latence et qualité par jour, avec Recharts','Les graphiques correspondent à la maquette.'],
+['Ajouter la comparaison avec la stratégie naïve et commit','Barres : routeur contre « toujours le gros modèle »|Lis les résultats du benchmark|`git commit -am jour16-dashboard`','Le tableau de comparaison est visible.']],
+17:[
+['Lancer les 200 questions','Routeur, puis stratégie naïve|Étale sur plusieurs jours si le quota est atteint|Sauvegarde chaque réponse','Deux fichiers de 200 résultats.'],
+['Calculer les gains','Coût, CO₂e, énergie, eau économisés en pourcentage|Qualité maintenue : qualité routeur divisée par qualité naïve','Trois chiffres : −X %, −Y %, Z %.'],
+['Exporter tableau et graphique','Enregistre un CSV et un PNG dans `data/`|Insère-les dans le README','Les chiffres sont dans le README.'],
+['Commit','`git add .` puis `git commit -m jour17-benchmark` et `git push`','Le commit est sur GitHub.']],
+18:[
+['Écrire le `Dockerfile` et `.dockerignore`','Image `python:3.11-slim`|Copie `requirements.txt`, installe, copie le code|Commande : `uvicorn backend.main:app --host 0.0.0.0 --port 8000`|`.dockerignore` : `.venv`, `.env`, `*.duckdb`','`docker build -t greenroute .` réussit.'],
+['Écrire `docker-compose.yml`','Service `backend` (port 8000) et `frontend`|`env_file: .env`|Volume pour `data/`','Le fichier est valide.'],
+['Tester `docker compose up`','`docker compose up --build`|Ouvre le backend et le dashboard|Ollama reste hors Docker : utilise `host.docker.internal:11434`','Les deux services répondent.'],
+['Commit','`git commit -am jour18-docker` puis `git push`','Le commit est sur GitHub.']],
+19:[
+['Créer un compte Render et activer GitHub Pages','render.com : connexion avec GitHub, offre gratuite|Dépôt, Settings, Pages pour le dashboard','Les deux comptes sont prêts.'],
+['Configurer les secrets','Dans Render, Environment : ajoute `GEMINI_API_KEY`|Jamais dans le code ni dans le dépôt','La clé n’apparaît dans aucun fichier du dépôt.'],
+['Vérifier les 512 Mo de RAM','Regarde la consommation au démarrage|Si trop lourd : embeddings plus légers ou résultats précalculés|Les modèles locaux ne tourneront pas en ligne : le repli est l’API','Le backend démarre sur Render.'],
+['Déployer et tester le lien public','Déploie le backend et le dashboard|Teste `/health` et `/chat`|Note le délai d’environ 1 minute au réveil dans le README','Le lien public répond.'],
+['Ajouter un workflow GitHub Actions','`.github/workflows/tests.yml`|Étapes : checkout, Python, `pip install -r requirements.txt`, `pytest`','Une coche verte dans l’onglet Actions.'],
+['Commit','`git add .github` puis `git commit -m jour19-deploiement` et `git push`','Le workflow se lance.']],
+20:[
+['Ajouter un schéma d’architecture au README','Insère `docs/architecture.png`|Ajoute 3 lignes de légende','L’image s’affiche sur GitHub.'],
+['Mettre les résultats et le lien de la démo','Reprends le tableau du jour 17|Ajoute le lien Render et le dashboard|Rappelle que énergie, CO₂e et eau API sont des estimations','Le README contient chiffres et lien.'],
+['Enregistrer une vidéo démo de 2 minutes','Plan : problème (20 s), démo (60 s), résultats (40 s)|Enregistre l’écran avec OBS ou l’enregistreur Windows|Mets le lien dans le README','Une vidéo de 2 minutes en ligne.'],
+['Relire le journal et épingler le dépôt','Relis une ligne par jour|Sur GitHub, Customize your pins puis choisis `greenroute`','Le dépôt est épinglé sur ton profil.'],
+['Ajouter le projet au CV et à LinkedIn','Une ligne : « GreenRoute, routeur de LLM : −X % de coût, −Y % de CO₂e »|Ajoute les liens GitHub et démo','CV et LinkedIn à jour.']],
+'C2':[
+['Section 1 · Schéma : mettre `01_architecture.md` dans `docs/` et vérifier l’affichage','Copie `01_architecture.md` dans le dossier `docs/` du dépôt|Dans le terminal de VS Code : `git add docs` puis `git commit -m docs-architecture-C2`|`git push`, puis ouvre le fichier sur github.com|Si le schéma ne s’affiche pas : colle le code (sans les lignes de trois accents graves) sur mermaid.live et note l’erreur','Le schéma s’affiche en image sur GitHub, avec les boîtes colorées.'],
+['Section 3 · Relire le trajet d’une requête et le raconter avec tes mots','Lis les 8 étapes de la section 3|Pour chacune, écris une phrase à toi dans ton journal (README) : qui fait quoi|Vérifie le cas d’erreur 429 : réessai avec délai, puis repli sur un modèle local|Explique à voix haute le trajet en 1 minute','Tu peux expliquer sans regarder : validation, cache, classifieur, modèle, mesures, logs, réponse.'],
+['Section 4 · Choix techniques : comprendre chaque choix et chaque alternative écartée','Lis le tableau ligne par ligne|Pour DuckDB, FastAPI et le cache en mémoire, écris pourquoi tu as écarté PostgreSQL, Flask et Redis|Si un mot est flou (embedding, token), relis le glossaire de la section 2 ou demande|Prépare une phrase par choix pour un entretien','Pour chaque ligne du tableau, tu sais dire « j’ai pris X plutôt que Y parce que… ».'],
+['Section 5 · Modules du backend : relire le rôle de chaque fichier','Lis la table de la section 5|Retiens la frontière : `main.py` reçoit, `router.py` décide, `llm_api.py` et `llm_local.py` appellent les modèles, `carbon.py` calcule, `db.py` enregistre|Note qu’il n’y a plus de `scheduler` : `/chat` répond toujours tout de suite','Tu peux dire en une phrase ce que fait chacun des 7 fichiers.'],
+['Section 6 · Arborescence : créer les dossiers manquants','Ouvre le terminal de VS Code à la racine du dépôt|Tape `mkdir docs, tests` (ignore l’erreur si un dossier existe déjà)|Ajoute un fichier vide dans `tests/` : `New-Item tests/.gitkeep`|Compare avec l’arbre de la section 6 grâce à `Get-ChildItem`','Tu vois `backend`, `frontend`, `data`, `eval`, `docs` et `tests` à la racine.'],
+['Exporter l’image du schéma et clore C2','Ouvre mermaid.live et colle le code du schéma (sans les lignes de trois accents graves)|Clique sur Actions puis PNG, et enregistre sous `docs/architecture.png`|`git add docs` puis `git commit -m docs-image-architecture`|`git push`','`docs/architecture.png` est visible sur GitHub.']],
+'C3':[
+['POST /chat : écrire le contrat dans `docs/02_api_donnees.md`','Crée `docs/02_api_donnees.md` avec le titre « API et données »|Ajoute une section « POST /chat »|Entrée : `message` (texte non vide) et `modele` (optionnel)|Sortie : `reponse`, `modele_utilise`, `difficulte`, `cache_hit`, `cout_eur`, `energie_wh`, `co2e_g`, `eau_ml`, `latence_ms`|Ajoute un exemple de requête et de réponse en JSON','Un lecteur pourrait appeler `/chat` sans voir ton code.'],
+['GET /stats et GET /health : écrire les deux sections','`/stats` : liste les chiffres renvoyés (énergie, CO₂e, eau, coût, latence médiane et 95e centile, part de requêtes en cache, répartition par modèle, heure la moins carbonée des 24 h)|`/health` : l’état de l’API, des 3 modèles Ollama et de l’API Gemini|Ajoute un exemple de réponse JSON pour chacune','Chaque route a une entrée, une sortie et un exemple.'],
+['Table `logs` : colonnes, types et un exemple','Liste les 16 colonnes : `id`, `horodatage`, `modele`, `lieu`, `difficulte`, `cache_hit`, `tokens_entree`, `tokens_sortie`, `latence_ms`, `tokens_par_s`, `energie_wh`, `intensite_g_kwh`, `co2e_g`, `eau_ml`, `cout_eur`, `note_qualite`|Donne un type à chacune (entier, décimal, texte, booléen, date-heure)|Écris une ligne d’exemple réaliste','Un tableau de 16 lignes (colonne, type, sens) et une ligne d’exemple.'],
+['Format de `eval/questions.csv` et grille d’annotation','Colonnes : `id`, `question`, `label` (simple, moyenne ou difficile)|Définis chaque niveau en une phrase (simple : reformulation ou extraction ; difficile : raisonnement ou code)|Donne 2 exemples de question par niveau|Écris une règle pour les cas limites : en cas de doute, prendre le niveau supérieur','3 niveaux définis, 6 exemples et 1 règle pour les cas limites.'],
+['Gestion d’erreurs : écrire ce que fait l’API','Message vide : réponse 422|Quota atteint (429) : réessayer avec un délai croissant (1 s, 2 s, 4 s), puis se rabattre sur un modèle local|Modèle indisponible : passer au modèle suivant|Dans tous les cas, enregistrer la requête dans les logs','Un tableau « situation, réponse de l’API, repli ».'],
+['Variables du `.env` et fichier `.env.example`','Liste : `GEMINI_API_KEY`, `GEMINI_MODEL_MOYEN`, `GEMINI_MODEL_GROS`, `OLLAMA_URL`, `SEUIL_CACHE`, `DB_PATH`|Crée `.env.example` avec les mêmes noms et des valeurs vides|Vérifie que `.env` est dans `.gitignore`, puis commit de `.env.example` seulement','`.env.example` est sur GitHub, `.env` n’y est pas.'],
+['Maquette du dashboard','Sur papier ou sur draw.io, dessine 3 zones|En haut : 4 chiffres (énergie, CO₂e, eau, coût)|Au milieu : courbes par jour (énergie, latence)|En bas : tableau comparant les 5 modèles et le routeur contre « toujours le gros modèle »|Enregistre l’image dans `docs/maquette_dashboard.png`','Une image de maquette dans `docs/` avec les 3 zones.']],
+'C4':[
+['Règle de routage : niveau → modèle et repli','Écris le tableau : simple → `llama3.2:3b` (repli `phi4-mini`), moyenne → `gpt-oss:20b` ou flash-lite, difficile → flash|Fixe la règle de repli : si la confiance du classifieur est faible, passer au niveau supérieur|Note le seuil de confiance à tester au jour 9 (par exemple 0,6) comme hypothèse','Un tableau niveau, modèle, repli, plus la règle de confiance.'],
+['Classifieur de base, entrées et métriques','Choisis : embeddings `paraphrase-multilingual-MiniLM-L12-v2` puis régression logistique|Métriques : précision globale et rappel sur la classe « difficile »|Fixe le découpage 80/20 avec stratification','Un paragraphe « classifieur » avec entrées, modèle et métriques.'],
+['Protocole de benchmark','Mêmes 200 questions pour les deux stratégies : routeur et « toujours le gros modèle »|Mesure la qualité avec une grille de 1 à 5 écrite à l’avance, un LLM juge gratuit et 30 réponses vérifiées à la main|Reporte les cibles minimum et objectif de la section 4.3 du cadrage|Précise que chaque réponse est sauvegardée pour ne jamais refaire un appel','Un protocole reproductible, avec les cibles du cadrage.'],
+['Calcul d’empreinte : énergie, CO₂e, eau','Local : mesurer l’énergie avec CodeCarbon pendant l’appel|API : estimer l’énergie à partir des tokens, avec une hypothèse écrite et sourcée|Formule : `CO₂e (g) = énergie (kWh) × intensité du réseau (g/kWh)`|Eau : coefficient documenté à partir de l’énergie|Écris que côté API ce sont des estimations, pas des mesures','Les 3 formules sont écrites, avec leurs hypothèses.'],
+['Cache et intensité carbone','Cache : note les seuils de similarité à tester au jour 11 (par exemple de 0,85 à 0,95)|Intensité RTE : historique téléchargé une seule fois, profil moyen par heure et par jour de semaine en secours|Précise que `/chat` répond toujours immédiatement','Deux paragraphes : cache et intensité carbone.'],
+['Relire les 4 documents (00 à 03)','Pour chaque fonctionnalité du cadrage, vérifie qu’elle a une métrique et un test prévus|Vérifie qu’aucun document ne parle encore d’ordonnanceur ou de paramètre « urgent »|Corrige les incohérences de noms (colonnes des logs, modèles)','Une liste de fonctionnalités avec métrique et test, sans incohérence.'],
+['Dates réelles, marge et tag `v0-design`','Dans le README, écris la date prévue de chaque phase avec 2 jours de marge|`git add .` puis `git commit -m conception-terminee`|`git tag v0-design` puis `git push --tags`','Le tag `v0-design` apparaît dans les releases GitHub.']],
+0:[
+['Installer Python, Git et VS Code','Python 3.10 ou plus récent depuis python.org : coche « Add python.exe to PATH » dans l’installateur|Git depuis git-scm.com (options par défaut)|VS Code depuis code.visualstudio.com|Ouvre un nouveau PowerShell et tape `python --version` puis `git --version`','Les deux commandes affichent un numéro de version.'],
+['Créer le dépôt `greenroute` sur GitHub','Sur github.com : New repository|Nom `greenroute`, visibilité Public|Coche « Add a README » et choisis le .gitignore « Python »|Clique sur Create repository','Le dépôt existe, avec un README et un .gitignore.'],
+['Cloner le dépôt et l’ouvrir dans VS Code','Sur la page du dépôt, bouton Code puis copie l’adresse HTTPS|Dans PowerShell : `git clone` suivi de l’adresse|`cd greenroute` puis `code .`','VS Code s’ouvre sur le dossier `greenroute`.'],
+['Créer les dossiers du projet','Dans le terminal de VS Code, à la racine : `mkdir backend, frontend, data, eval, docs, tests`|Vérifie avec `Get-ChildItem`','Les 6 dossiers apparaissent dans l’explorateur.'],
+['Créer `backend/__init__.py` et les `.gitkeep`','`New-Item backend/__init__.py`|`New-Item frontend/.gitkeep, data/.gitkeep, eval/.gitkeep, tests/.gitkeep` (Git ne suit pas les dossiers vides)|`docs/` contient déjà tes fichiers de conception','Chaque dossier contient au moins un fichier.'],
+['Premier commit et push','`git add .`|`git commit -m structure-initiale`|`git push`|Ouvre github.com et rafraîchis la page','Les dossiers sont visibles sur GitHub.']]
+};
+var days=[];P.forEach(function(p){p.d.forEach(function(d){if(DET[d.n]&&DET[d.n].length===d.k.length)d.k=DET[d.n];d._p=p;days.push(d)})});
 function cnt(d){var c=0;d.k.forEach(function(_,i){if(st.done[d.n+"."+i])c++});return c}
 function build(){
   var h="",o="";
@@ -291,7 +473,7 @@ function build(){
     h+='<section class="ph" id="'+p.id+'"><header><h2>'+p.t+'</h2><span class="sub">'+p.s+'</span></header><p class="goal">'+p.g+'</p>';
     p.d.forEach(function(d){
       h+='<details id="d'+d.n+'"><summary><span class="t">Jour '+d.n+' · '+d.t+'</span><span class="badge" id="b'+d.n+'"></span></summary><div class="inner"><p class="res">Résultat attendu : '+esc(d.r)+'</p>';
-      d.k.forEach(function(k,i){h+='<label><input type="checkbox" data-k="'+d.n+'.'+i+'"><span>'+esc(k)+'</span></label>'});
+      d.k.forEach(function(k,i){h+='<label><input type="checkbox" data-k="'+d.n+'.'+i+'"><span>'+esc(T(k))+'</span></label>'+det(k)});
       h+='</div></details>'});
     h+='</section>'});
   $("ph").innerHTML=h;$("ov").innerHTML=o;
@@ -314,7 +496,7 @@ function upd(){
   var fd=days.filter(function(d){return cnt(d)===d.k.length}).length;
   $("gt").textContent=dn+" tâches sur "+tot+" · "+fd+" jours terminés sur "+days.length;
   if(c){var i=0;while(st.done[c.n+"."+i])i++;
-    $("nx").innerHTML="<b>Prochaine tâche · Jour "+c.n+" : "+c.t+"</b><br>"+esc(c.k[i])}
+    $("nx").innerHTML="<b>Prochaine tâche · Jour "+c.n+" : "+c.t+"</b><br>"+esc(T(c.k[i]))+det(c.k[i],1)}
   else $("nx").innerHTML="<b>Projet terminé.</b> Mets à jour ton CV et publie le lien de la démo."}
 function jumpInit(){
   var s=$("jump"),o='<option value="">Choisir…</option>';
@@ -327,13 +509,13 @@ function ctx(){
   var c=cur(),L=[];
   L.push("# GreenRoute · contexte projet pour assistant IA","",
   "## Ton rôle","Tu es mon mentor technique. Guide-moi pas à pas, une journée du planning à la fois, avec des commandes exactes et le code complet des fichiers. Je suis sous Windows (PowerShell) et débutant sur plusieurs outils. Après chaque étape, attends mon retour (résultat ou message d’erreur exact) avant de continuer. Respecte strictement le planning ci-dessous. Si je suis en retard, applique les règles de priorité.","",
-  "## Projet","GreenRoute : routeur de LLM qui optimise le coût et l’empreinte carbone. Une API (FastAPI) reçoit une question, un classifieur de difficulté (embeddings + scikit-learn) choisit parmi 5 modèles (petit : llama3.2:3b, repli phi4-mini ; moyen : gpt-oss:20b en local ou Gemini flash-lite ; gros : Gemini flash ; noms Gemini exacts à vérifier), un cache sémantique évite les appels répétés, un ordonnanceur décale les tâches non urgentes vers les heures où le réseau électrique français est le moins carboné (données RTE éco2mix + prévision Prophet/XGBoost). Un dashboard React + Recharts affiche coût, latence, gCO₂ contre une stratégie « toujours le gros modèle ». KPI : énergie (Wh), CO₂e, eau (mL), qualité (1 à 5), tokens/s, latence, coût pour 1 000 requêtes, quotas API. Énergie, CO₂e et eau côté API sont des estimations, pas des mesures. Livrable clé : benchmark chiffré (−X % coût, −Y % CO₂e, qualité Z %). Objectif : portfolio pour un stage en data science et IA. Contrainte forte : 100 % ressources gratuites, sans carte bancaire ; les coûts du benchmark sont des estimations au tarif public. Les quotas gratuits sont limités : prévoir cache et repli sur un modèle local.","",
+  "## Projet","GreenRoute : routeur de LLM qui optimise le coût et l’empreinte carbone. Une API (FastAPI) reçoit une question, un classifieur de difficulté (embeddings + scikit-learn) choisit parmi 5 modèles (petit : llama3.2:3b, repli phi4-mini ; moyen : gpt-oss:20b en local ou Gemini flash-lite ; gros : Gemini flash ; noms Gemini exacts à vérifier), un cache sémantique évite les appels répétés, et les données RTE éco2mix (intensité carbone par heure, prévision Prophet/XGBoost) servent à calculer le CO₂e de chaque requête. `/chat` répond toujours immédiatement : pas d’option urgent, pas de file d’attente. Un dashboard React + Recharts affiche coût, latence, gCO₂ contre une stratégie « toujours le gros modèle ». KPI : énergie (Wh), CO₂e, eau (mL), qualité (1 à 5), tokens/s, latence, coût pour 1 000 requêtes, quotas API. Énergie, CO₂e et eau côté API sont des estimations, pas des mesures. Livrable clé : benchmark chiffré (−X % coût, −Y % CO₂e, qualité Z %). Objectif : portfolio pour un stage en data science et IA. Contrainte forte : 100 % ressources gratuites, sans carte bancaire ; les coûts du benchmark sont des estimations au tarif public. Les quotas gratuits sont limités : prévoir cache et repli sur un modèle local.","",
   "## Stack et conventions","Python, FastAPI, DuckDB (logs), dictionnaire en mémoire (cache), scikit-learn, sentence-transformers, Prophet/XGBoost, Ollama, CodeCarbon, React + Vite + Recharts, Docker, GitHub Actions, Render (offre gratuite) + GitHub Pages. Dépôt : `greenroute/` avec `backend/`, `frontend/`, `data/`, `eval/`, `docs/` (conception). Environnement virtuel `.venv`. Un commit par jour et une ligne de journal dans le README. Secrets dans `.env`, jamais commités.","",
   "## Règles de priorité","Ne rien perfectionner avant la fin de la phase 3. En retard : supprimer d’abord le cache sémantique (jour 11), jamais le benchmark. Bloqué plus de 45 minutes : je te colle l’erreur exacte.","",
   "## État actuel");
   if(c){var i=0;while(st.done[c.n+"."+i])i++;
-    L.push("Jour en cours : Jour "+c.n+" · "+c.t+" ("+c._p.t+")","Prochaine tâche : "+plain(c.k[i]),"","Tâches restantes du jour en cours :");
-    c.k.forEach(function(k,j){if(!st.done[c.n+"."+j])L.push("- [ ] "+plain(k))})}
+    L.push("Jour en cours : Jour "+c.n+" · "+c.t+" ("+c._p.t+")","Prochaine tâche : "+plain(T(c.k[i])),"","Tâches restantes du jour en cours :");
+    c.k.forEach(function(k,j){if(!st.done[c.n+"."+j])L.push("- [ ] "+plain(T(k)))})}
   else L.push("Toutes les tâches sont terminées.");
   L.push("","## Planning et avancement");
   P.forEach(function(p){L.push("","### "+p.t+" ("+p.s+") : "+p.g);
