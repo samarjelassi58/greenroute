@@ -1,6 +1,6 @@
 # GreenRoute · Cadrage
 
-Version 0.1 · 15 novembre 2026
+Version 0.2 · 15 novembre 2026
 
 ## 1. Vision & Objectif
 
@@ -18,7 +18,7 @@ Une question posée → réponse rapide + rapport d'énergie et CO₂e consommé
 | Critère | Choix | Raison |
 |---|---|---|
 | **Déploiement** | Local + API gratuite (Gemini) | Pas de coût opérationnel, pas de carte bancaire |
-| **Performance** | Réponse immédiate (`/chat` < 1s en cache) | L'utilisateur n'attend pas |
+| **Performance** | `/chat` < 1 s en cache ; sans file d'attente dans les autres cas (le délai dépend du modèle) | L'utilisateur n'attend jamais inutilement |
 | **Données** | Logs en DuckDB | Rien à installer, rien à maintenir |
 | **Calcul carbone** | RTE + CodeCarbon | Données libres, France-centré |
 
@@ -33,16 +33,16 @@ Une question posée → réponse rapide + rapport d'énergie et CO₂e consommé
 
 Pour chaque requête :
 - ✅ **Réponse** (texte du modèle)
-- ✅ **Énergie** (Wh)
-- ✅ **CO₂e** (grammes)
-- ✅ **Eau** (litres, estimation)
-- ✅ **Coût** (€ ou $)
+- ✅ **Énergie** (Wh, estimation)
+- ✅ **CO₂e** (grammes, estimation)
+- ✅ **Eau** (mL, estimation)
+- ✅ **Coût** (€ ; 0 € en pratique car tout est gratuit, avec un coût équivalent au tarif public de l'API affiché à titre de comparaison)
 - ✅ **Temps** (secondes)
 - ✅ **Modèle utilisé** (llama3.2, gpt-oss, Gemini, etc.)
 
 ## 5. Périmètre - Ce qu'on fait
 
-- ✅ Classifier les questions (simple/moyen/difficile)
+- ✅ Classifier les questions (simple/moyen/difficile) avec un classifieur léger (pas de LLM fine-tuné)
 - ✅ Choisir le modèle adapté
 - ✅ Mesurer l'énergie réelle/estimée
 - ✅ Logger tout dans DuckDB
